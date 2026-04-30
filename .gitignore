@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+*.log
+dev-err.log
+dev-server.log
+dev.log
+
+# Misc scratch files
+scroll.txt
+BG.txt
+backG.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Env
+.env
+.env.local
+.claude/

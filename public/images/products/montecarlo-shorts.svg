@@ -1,0 +1,65 @@
+<svg width="600" height="800" viewBox="0 0 600 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Satin silk weave — more pronounced diagonal for heavy silk satin -->
+    <pattern id="weave" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="9" y2="0" stroke="#C8A050" stroke-width="0.55" opacity="0.45"/>
+      <line x1="0" y1="4.5" x2="9" y2="4.5" stroke="#D4B070" stroke-width="0.3" opacity="0.28"/>
+      <line x1="0" y1="0" x2="0" y2="9" stroke="#C8A050" stroke-width="0.28" opacity="0.22"/>
+    </pattern>
+    <!-- Warm champagne gradient — heavy silk satin quality -->
+    <radialGradient id="base" cx="38%" cy="24%" r="86%" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#F0DDB0"/>
+      <stop offset="32%"  stop-color="#DEC080"/>
+      <stop offset="65%"  stop-color="#C8A050"/>
+      <stop offset="100%" stop-color="#906820"/>
+    </radialGradient>
+    <!-- Liquid gold sheen — satin has a very pronounced highlight -->
+    <linearGradient id="sheen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="20%"  stop-color="white" stop-opacity="0.0"/>
+      <stop offset="36%"  stop-color="white" stop-opacity="0.28"/>
+      <stop offset="42%"  stop-color="white" stop-opacity="0.14"/>
+      <stop offset="52%"  stop-color="white" stop-opacity="0.0"/>
+    </linearGradient>
+    <!-- Warm secondary sheen — satin has multiple catch-lights -->
+    <linearGradient id="sheen2" x1="100%" y1="20%" x2="30%" y2="100%">
+      <stop offset="0%"   stop-color="white" stop-opacity="0.0"/>
+      <stop offset="30%"  stop-color="white" stop-opacity="0.12"/>
+      <stop offset="38%"  stop-color="white" stop-opacity="0.05"/>
+      <stop offset="50%"  stop-color="white" stop-opacity="0.0"/>
+    </linearGradient>
+    <linearGradient id="bot" x1="0%" y1="60%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#0A0806" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0A0806" stop-opacity="0.55"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="800" fill="url(#base)"/>
+  <rect width="600" height="800" fill="url(#weave)" opacity="0.75"/>
+
+  <!-- Fold panels -->
+  <rect x="-50" y="80"  width="250" height="740" rx="0.5" transform="rotate(-3.8 75 450)"  fill="black" fill-opacity="0.06"/>
+  <rect x="150" y="50"  width="320" height="760" rx="0.5" transform="rotate( 2.5 310 430)"  fill="white" fill-opacity="0.05"/>
+  <rect x="360" y="70"  width="300" height="720" rx="0.5" transform="rotate(-3.2 510 430)"  fill="black" fill-opacity="0.055"/>
+
+  <!-- Crease lines -->
+  <line x1="0" y1="282" x2="600" y2="290" stroke="#906820" stroke-width="1.2" opacity="0.12"/>
+  <line x1="0" y1="470" x2="600" y2="477" stroke="#906820" stroke-width="0.8" opacity="0.08"/>
+
+  <rect width="600" height="800" fill="url(#sheen)"/>
+  <rect width="600" height="800" fill="url(#sheen2)"/>
+  <rect width="600" height="800" fill="url(#bot)"/>
+
+  <!-- Corner marks -->
+  <path d="M28 28 L76 28 M28 28 L28 76"   stroke="#C9A96E" stroke-width="0.75" opacity="0.35" stroke-linecap="square"/>
+  <path d="M572 28 L524 28 M572 28 L572 76"  stroke="#C9A96E" stroke-width="0.75" opacity="0.35" stroke-linecap="square"/>
+  <path d="M28 772 L76 772 M28 772 L28 724"  stroke="#C9A96E" stroke-width="0.75" opacity="0.35" stroke-linecap="square"/>
+  <path d="M572 772 L524 772 M572 772 L572 724" stroke="#C9A96E" stroke-width="0.75" opacity="0.35" stroke-linecap="square"/>
+
+  <!-- Annotation -->
+  <line x1="78" y1="720" x2="522" y2="720" stroke="#C9A96E" stroke-width="0.5" opacity="0.30"/>
+  <text x="300" y="742" text-anchor="middle" font-family="Georgia,'Times New Roman',serif"
+        font-size="9" fill="#C9A96E" opacity="0.72" letter-spacing="3.5">MULBERRY SILK · GRADE 6A</text>
+  <text x="300" y="762" text-anchor="middle" font-family="Georgia,'Times New Roman',serif"
+        font-size="9.5" font-style="italic" fill="#F5F0E8" opacity="0.44" letter-spacing="2">Monte Carlo</text>
+  <line x1="78" y1="774" x2="522" y2="774" stroke="#C9A96E" stroke-width="0.4" opacity="0.16"/>
+</svg>

@@ -1,0 +1,93 @@
+<svg width="600" height="800" viewBox="0 0 600 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Fine twill on dark forest green — very subtle -->
+    <pattern id="weave" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
+      <line x1="0" y1="0" x2="7" y2="0" stroke="#2C3C2C" stroke-width="0.5" opacity="0.65"/>
+      <line x1="0" y1="3.5" x2="7" y2="3.5" stroke="#243024" stroke-width="0.3" opacity="0.4"/>
+    </pattern>
+    <!-- Deep forest green — dramatic lighting from single warm source -->
+    <radialGradient id="base" cx="64%" cy="18%" r="82%" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#2C3C2C"/>
+      <stop offset="30%"  stop-color="#1A2A1A"/>
+      <stop offset="62%"  stop-color="#101810"/>
+      <stop offset="100%" stop-color="#060C06"/>
+    </radialGradient>
+    <!-- Warm amber candle-glow on embroidery -->
+    <radialGradient id="glow" cx="66%" cy="18%" r="50%">
+      <stop offset="0%"   stop-color="#C9A96E" stop-opacity="0.18"/>
+      <stop offset="38%"  stop-color="#C9A96E" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#C9A96E" stop-opacity="0.0"/>
+    </radialGradient>
+    <!-- Sheen on dark silk — narrow band -->
+    <linearGradient id="sheen" x1="100%" y1="0%" x2="15%" y2="100%">
+      <stop offset="15%"  stop-color="#C9A96E" stop-opacity="0.0"/>
+      <stop offset="28%"  stop-color="#C9A96E" stop-opacity="0.09"/>
+      <stop offset="34%"  stop-color="white"   stop-opacity="0.04"/>
+      <stop offset="42%"  stop-color="white"   stop-opacity="0.0"/>
+    </linearGradient>
+    <linearGradient id="bot" x1="0%" y1="58%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#060C06" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#060C06" stop-opacity="0.72"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="62%">
+      <stop offset="0%"   stop-color="black" stop-opacity="0"/>
+      <stop offset="100%" stop-color="black" stop-opacity="0.30"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="600" height="800" fill="url(#base)"/>
+  <rect width="600" height="800" fill="url(#weave)" opacity="0.85"/>
+
+  <!-- Deep fold shadows -->
+  <rect x="-50" y="90"  width="240" height="720" rx="0.5" transform="rotate(-4.0 70 450)"  fill="black" fill-opacity="0.20"/>
+  <rect x="155" y="55"  width="305" height="745" rx="0.5" transform="rotate( 2.5 308 428)"  fill="white" fill-opacity="0.016"/>
+  <rect x="365" y="85"  width="295" height="700" rx="0.5" transform="rotate(-3.5 514 435)"  fill="black" fill-opacity="0.24"/>
+
+  <!-- Amber candle glow -->
+  <rect width="600" height="800" fill="url(#glow)"/>
+
+  <!-- Hand-embroidered botanical motifs in gold — scattered leaves and stems -->
+  <!-- Branch left -->
+  <path d="M80 180 Q120 140 145 95"  stroke="#C9A96E" stroke-width="0.7" fill="none" opacity="0.30" stroke-linecap="round"/>
+  <path d="M105 158 Q125 145 140 130" stroke="#C9A96E" stroke-width="0.5" fill="none" opacity="0.22" stroke-linecap="round"/>
+  <path d="M120 140 Q108 128 100 112" stroke="#C9A96E" stroke-width="0.5" fill="none" opacity="0.22" stroke-linecap="round"/>
+  <!-- Leaf cluster left -->
+  <ellipse cx="98"  cy="172" rx="7"  ry="4"  transform="rotate(-32 98 172)"  fill="#C9A96E" fill-opacity="0.18"/>
+  <ellipse cx="118" cy="150" rx="6"  ry="3.5" transform="rotate(-55 118 150)" fill="#C9A96E" fill-opacity="0.16"/>
+  <ellipse cx="135" cy="128" rx="5"  ry="3"  transform="rotate(22 135 128)"  fill="#C9A96E" fill-opacity="0.14"/>
+  <ellipse cx="142" cy="108" rx="4.5" ry="2.8" transform="rotate(-40 142 108)" fill="#C9A96E" fill-opacity="0.12"/>
+
+  <!-- Branch right mid -->
+  <path d="M480 280 Q510 240 525 200" stroke="#C9A96E" stroke-width="0.65" fill="none" opacity="0.25" stroke-linecap="round"/>
+  <path d="M495 265 Q518 250 528 232" stroke="#C9A96E" stroke-width="0.45" fill="none" opacity="0.18" stroke-linecap="round"/>
+  <ellipse cx="488" cy="275" rx="6"  ry="3.5" transform="rotate(28 488 275)"  fill="#C9A96E" fill-opacity="0.16"/>
+  <ellipse cx="503" cy="258" rx="5.5" ry="3.2" transform="rotate(-18 503 258)" fill="#C9A96E" fill-opacity="0.14"/>
+  <ellipse cx="516" cy="240" rx="5"  ry="3"   transform="rotate(42 516 240)"  fill="#C9A96E" fill-opacity="0.12"/>
+
+  <!-- Small scattered blossoms -->
+  <circle cx="165" cy="320" r="2.5" fill="#C9A96E" fill-opacity="0.20"/>
+  <circle cx="172" cy="320" r="1.5" fill="#C9A96E" fill-opacity="0.12"/>
+  <circle cx="158" cy="327" r="1.8" fill="#C9A96E" fill-opacity="0.14"/>
+  <circle cx="420" cy="180" r="2.2" fill="#C9A96E" fill-opacity="0.18"/>
+  <circle cx="428" cy="174" r="1.4" fill="#C9A96E" fill-opacity="0.12"/>
+  <circle cx="390" cy="520" r="1.8" fill="#C9A96E" fill-opacity="0.15"/>
+  <circle cx="210" cy="440" r="2"   fill="#C9A96E" fill-opacity="0.14"/>
+
+  <rect width="600" height="800" fill="url(#sheen)"/>
+  <rect width="600" height="800" fill="url(#vignette)"/>
+  <rect width="600" height="800" fill="url(#bot)"/>
+
+  <!-- Corner marks -->
+  <path d="M28 28 L76 28 M28 28 L28 76"   stroke="#C9A96E" stroke-width="0.75" opacity="0.28" stroke-linecap="square"/>
+  <path d="M572 28 L524 28 M572 28 L572 76"  stroke="#C9A96E" stroke-width="0.75" opacity="0.28" stroke-linecap="square"/>
+  <path d="M28 772 L76 772 M28 772 L28 724"  stroke="#C9A96E" stroke-width="0.75" opacity="0.28" stroke-linecap="square"/>
+  <path d="M572 772 L524 772 M572 772 L572 724" stroke="#C9A96E" stroke-width="0.75" opacity="0.28" stroke-linecap="square"/>
+
+  <!-- Annotation -->
+  <line x1="78" y1="720" x2="522" y2="720" stroke="#C9A96E" stroke-width="0.5" opacity="0.25"/>
+  <text x="300" y="742" text-anchor="middle" font-family="Georgia,'Times New Roman',serif"
+        font-size="9" fill="#C9A96E" opacity="0.62" letter-spacing="3.5">HAND-PAINTED SILK</text>
+  <text x="300" y="762" text-anchor="middle" font-family="Georgia,'Times New Roman',serif"
+        font-size="9.5" font-style="italic" fill="#E8F0E8" opacity="0.36" letter-spacing="2">Le Jardin</text>
+  <line x1="78" y1="774" x2="522" y2="774" stroke="#C9A96E" stroke-width="0.4" opacity="0.14"/>
+</svg>

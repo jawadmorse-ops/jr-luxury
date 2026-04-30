@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JR Studios — Premium Web Design & Development</title>
+    <meta name="description" content="JR Studios builds premium custom websites, 3D WebGL experiences, and digital brands for clients who demand excellence." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Montserrat:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+
+    <!-- Cinematic preloader -->
+    <div id="preloader" aria-hidden="true">
+      <div class="pl-mono">JR</div>
+      <p class="pl-tag">Digital Studio</p>
+      <div class="pl-bar"><span class="pl-fill"></span></div>
+    </div>
+
+    <!-- Custom cursor (desktop only) -->
+    <div id="cursor-dot"  aria-hidden="true"></div>
+    <div id="cursor-ring" aria-hidden="true"></div>
+
+    <!-- Scroll progress line -->
+    <div id="scroll-progress" aria-hidden="true"></div>
+
+    <!-- Navigation -->
+    <nav id="nav">
+      <div class="nav-inner">
+        <a href="#" class="nav-logo" aria-label="JR Studios Home">JR Studios</a>
+        <ul class="nav-links" role="list">
+          <li><a href="#materials" data-i18n="nav.services">Services</a></li>
+          <li><a href="#philosophy" data-i18n="nav.about">About</a></li>
+          <li><a href="#atelier" data-i18n="nav.process">Process</a></li>
+          <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
+        </ul>
+        <div class="lang-switcher" role="group" aria-label="Language">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="ar">عر</button>
+          <button class="lang-btn" data-lang="he">עב</button>
+        </div>
+        <a href="#contact" class="nav-cta" data-i18n="nav.cta">Start a Project</a>
+        <button class="nav-hamburger" aria-label="Open menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" role="dialog" aria-label="Navigation menu">
+      <button class="mobile-close" aria-label="Close menu">✕</button>
+      <ul role="list">
+        <li><a href="#materials" data-i18n="nav.services">Services</a></li>
+        <li><a href="#philosophy" data-i18n="nav.about">About</a></li>
+        <li><a href="#atelier" data-i18n="nav.process">Process</a></li>
+        <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
+      </ul>
+    </div>
+
+    <!-- Hero -->
+    <section id="hero">
+      <!-- React root — HeroGeometric mounts here -->
+      <div id="hero-react-root"></div>
+
+      <!-- Cinematic corner brackets -->
+      <div class="hero-corner c-tl" aria-hidden="true"></div>
+      <div class="hero-corner c-tr" aria-hidden="true"></div>
+      <div class="hero-corner c-bl" aria-hidden="true"></div>
+      <div class="hero-corner c-br" aria-hidden="true"></div>
+
+      <!-- Side labels -->
+      <div class="hero-side-label hero-side-label--left" aria-hidden="true">Web Design &nbsp;·&nbsp; Development &nbsp;·&nbsp; Est. 2026</div>
+      <div class="hero-side-label hero-side-label--right" aria-hidden="true" data-i18n="hero.scroll">Scroll to Explore</div>
+    </section>
+
+    <!-- Marquee (decorative — kept in English) -->
+    <div class="marquee-wrapper" aria-hidden="true">
+      <div class="marquee-track">
+        <span>WEB DESIGN</span><span class="dot">·</span>
+        <span>3D EXPERIENCES</span><span class="dot">·</span>
+        <span>MOTION DESIGN</span><span class="dot">·</span>
+        <span>E-COMMERCE</span><span class="dot">·</span>
+        <span>BRAND IDENTITY</span><span class="dot">·</span>
+        <span>FULL-STACK DEV</span><span class="dot">·</span>
+        <span>WEB DESIGN</span><span class="dot">·</span>
+        <span>3D EXPERIENCES</span><span class="dot">·</span>
+        <span>MOTION DESIGN</span><span class="dot">·</span>
+        <span>E-COMMERCE</span><span class="dot">·</span>
+        <span>BRAND IDENTITY</span><span class="dot">·</span>
+        <span>FULL-STACK DEV</span><span class="dot">·</span>
+      </div>
+    </div>
+
+    <!-- About / Philosophy -->
+    <section id="philosophy">
+      <canvas class="philosophy-canvas" aria-hidden="true"></canvas>
+      <div class="philosophy-inner">
+        <div class="philosophy-text reveal">
+          <p class="section-eyebrow" data-i18n="phil.eyebrow">Our Philosophy</p>
+          <h2 data-i18n-html="phil.h2">We don't build<br><em>websites</em></h2>
+          <p data-i18n="phil.p1">We build growth engines. Every pixel, every interaction, every line of code is designed with one goal: turning your visitors into clients.</p>
+          <p data-i18n="phil.p2">JR Studios was founded on the belief that premium digital experiences shouldn't be reserved for Fortune 500 companies. We bring that same level of craft to ambitious businesses of every size.</p>
+          <a href="#atelier" class="btn-text" data-i18n-html="phil.link">See how we work <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="philosophy-visual reveal">
+          <div class="philosophy-card">
+            <div class="philosophy-card-rule" aria-hidden="true"></div>
+            <blockquote>
+              <p data-i18n="phil.quote">"The difference between a good website and a great one is the one your clients can't stop talking about."</p>
+            </blockquote>
+          </div>
+          <div class="philosophy-stats">
+            <div class="stat">
+              <span class="stat-number">50+</span>
+              <span class="stat-label" data-i18n="phil.stat1.label">Projects Delivered</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number">98%</span>
+              <span class="stat-label" data-i18n="phil.stat2.label">Client Satisfaction</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number">4.9★</span>
+              <span class="stat-label" data-i18n="phil.stat3.label">Average Rating</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services -->
+    <section id="materials">
+      <div class="container">
+        <header class="section-header">
+          <p class="section-eyebrow reveal" data-i18n="svc.eyebrow">What We Do</p>
+          <h2 class="reveal" data-i18n-html="svc.h2">Every service.<br><em>Pixel perfect.</em></h2>
+        </header>
+        <div class="materials-grid">
+          <div class="material-card reveal">
+            <canvas class="service-canvas" data-shape="icosahedron" aria-hidden="true"></canvas>
+            <h3 data-i18n="svc.web.h3">Web Design & Development</h3>
+            <p data-i18n="svc.web.p">Custom-built websites from the ground up. No templates. No page builders. Just clean, performant code crafted for your exact needs — and built to convert.</p>
+          </div>
+          <div class="material-card reveal">
+            <canvas class="service-canvas" data-shape="torusknot" aria-hidden="true"></canvas>
+            <h3 data-i18n="svc.3d.h3">3D & WebGL Experiences</h3>
+            <p data-i18n="svc.3d.p">Three.js, WebGL, GSAP — we bring the web to life. Interactive 3D scenes, particle systems, and fluid animations that make your site impossible to forget.</p>
+          </div>
+          <div class="material-card reveal">
+            <canvas class="service-canvas" data-shape="octahedron" aria-hidden="true"></canvas>
+            <h3 data-i18n="svc.brand.h3">Brand Identity & Strategy</h3>
+            <p data-i18n="svc.brand.p">Logos, visual systems, and brand guidelines that make you unmistakable. We build identities that look as good on a billboard as they do on a mobile screen.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Process -->
+    <section id="atelier">
+      <div class="container">
+        <header class="section-header">
+          <p class="section-eyebrow reveal" data-i18n="proc.eyebrow">How We Work</p>
+          <h2 class="reveal" data-i18n-html="proc.h2">From Brief<br><em>to Launch</em></h2>
+        </header>
+        <div class="process-steps">
+          <div class="process-step reveal">
+            <div class="step-number">01</div>
+            <div class="step-content">
+              <h3 data-i18n="proc.1.h3">Discovery</h3>
+              <p data-i18n="proc.1.p">We start with a deep dive into your business, your audience, and your goals. No assumptions — just the right questions, and careful listening.</p>
+            </div>
+          </div>
+          <div class="process-connector" aria-hidden="true"></div>
+          <div class="process-step reveal">
+            <div class="step-number">02</div>
+            <div class="step-content">
+              <h3 data-i18n="proc.2.h3">Strategy & Design</h3>
+              <p data-i18n="proc.2.p">Wireframes, mood boards, and a visual direction that feels unmistakably yours. We design in the browser — what you see is what you get.</p>
+            </div>
+          </div>
+          <div class="process-connector" aria-hidden="true"></div>
+          <div class="process-step reveal">
+            <div class="step-number">03</div>
+            <div class="step-content">
+              <h3 data-i18n="proc.3.h3">Development</h3>
+              <p data-i18n="proc.3.p">Clean, semantic code. Mobile-first. Blazing fast. We build with modern frameworks and zero bloat — because performance IS part of the design.</p>
+            </div>
+          </div>
+          <div class="process-connector" aria-hidden="true"></div>
+          <div class="process-step reveal">
+            <div class="step-number">04</div>
+            <div class="step-content">
+              <h3 data-i18n="proc.4.h3">Testing & Refinement</h3>
+              <p data-i18n="proc.4.p">Cross-browser testing, accessibility audits, performance scoring. We don't ship until it's right — on every device, every screen, every connection speed.</p>
+            </div>
+          </div>
+          <div class="process-connector" aria-hidden="true"></div>
+          <div class="process-step reveal">
+            <div class="step-number">05</div>
+            <div class="step-content">
+              <h3 data-i18n="proc.5.h3">Launch & Support</h3>
+              <p data-i18n="proc.5.p">We go live together — and we stay close. Ongoing support, updates, and iterations as your business grows. We're in it for the long run.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonial -->
+    <section id="testimonials">
+      <div class="testimonial-inner reveal">
+        <svg class="quote-mark" width="52" height="40" viewBox="0 0 52 40" fill="none" aria-hidden="true">
+          <path d="M0 40 L0 22 Q0 0 20 0 L20 9 Q9 9 9 22 L18 22 L18 40 Z M30 40 L30 22 Q30 0 50 0 L50 9 Q39 9 39 22 L48 22 L48 40 Z" fill="#C9A96E" opacity="0.25"/>
+        </svg>
+        <blockquote>
+          <p data-i18n="test.quote">"JR Studios didn't just build us a website — they built us a sales machine. Within three months of launching, our inbound enquiries doubled. The quality is in a completely different league."</p>
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact">
+      <div class="container">
+        <div class="contact-grid">
+          <div class="contact-text reveal">
+            <p class="section-eyebrow" data-i18n="contact.eyebrow">Start a Project</p>
+            <h2 data-i18n-html="contact.h2">Ready to build<br><em>something great?</em></h2>
+            <p data-i18n="contact.p">Tell us about your project and we'll come back to you within 24 hours with a tailored proposal. No fluff, no sales pitch — just an honest conversation.</p>
+          </div>
+          <div class="contact-form-wrap reveal">
+            <form id="enquiry-form" novalidate>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="fname" data-i18n="contact.name.label">Name</label>
+                  <input type="text" id="fname" name="name" data-i18n-ph="contact.name.ph" placeholder="Your name" autocomplete="name">
+                </div>
+                <div class="form-group">
+                  <label for="fphone" data-i18n="contact.phone.label">Phone Number</label>
+                  <input type="tel" id="fphone" name="phone" data-i18n-ph="contact.phone.ph" placeholder="+1 234 567 8900" autocomplete="tel">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="finterest" data-i18n="contact.interest.label">Project Type</label>
+                <select id="finterest" name="interest">
+                  <option value="">What do you need?</option>
+                  <option value="Custom Website">Custom Website</option>
+                  <option value="E-commerce Store">E-commerce Store</option>
+                  <option value="3D / WebGL Experience">3D / WebGL Experience</option>
+                  <option value="Brand Identity">Brand Identity</option>
+                  <option value="Something Else">Something Else</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="fmessage" data-i18n-html="contact.message.label">Tell us about your project <span class="label-optional">(optional)</span></label>
+                <textarea id="fmessage" name="message" rows="3" data-i18n-ph="contact.message.ph" placeholder="What are you building? What's your timeline?"></textarea>
+              </div>
+              <button type="submit" class="btn-primary btn-full" id="form-submit" data-i18n="contact.submit">Send Enquiry on WhatsApp</button>
+            </form>
+            <p class="form-note" data-i18n="contact.note">Opens WhatsApp with your details pre-filled. We reply within 24 hours.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="footer">
+
+      <!-- Brand row -->
+      <div class="ft-brand-row reveal">
+        <a href="#" class="ft-logo" aria-label="JR Studios home">JR Studios</a>
+        <p class="ft-brand-desc" data-i18n="ft.desc">Welcome to JR Studios, where creativity meets technology to build premium digital experiences. We specialise in crafting custom websites, 3D WebGL experiences, and brand identities that convert visitors into clients. We believe in quality over quantity — when you work with us, you work directly with us.</p>
+      </div>
+
+      <div class="ft-rule"></div>
+
+      <!-- Navigation grid -->
+      <div class="ft-nav-grid reveal">
+        <div class="ft-col">
+          <ul role="list">
+            <li><a href="#philosophy" data-i18n="ft.about">About</a></li>
+            <li><a href="#philosophy" data-i18n="ft.philosophy">Philosophy</a></li>
+            <li><a href="#testimonials" data-i18n="ft.testimonials">Testimonials</a></li>
+          </ul>
+        </div>
+        <div class="ft-col">
+          <ul role="list">
+            <li><a href="#materials" data-i18n="ft.services">Services</a></li>
+            <li><a href="#materials" data-i18n="ft.webdesign">Web Design</a></li>
+            <li><a href="#materials" data-i18n="ft.webgl">3D &amp; WebGL</a></li>
+          </ul>
+        </div>
+        <div class="ft-col">
+          <ul role="list">
+            <li><a href="#materials" data-i18n="ft.capabilities">Capabilities</a></li>
+            <li><a href="#materials" data-i18n="ft.ecommerce">E-Commerce</a></li>
+            <li><a href="#materials" data-i18n="ft.brand">Brand Identity</a></li>
+          </ul>
+        </div>
+        <div class="ft-col">
+          <ul role="list">
+            <li><a href="#atelier" data-i18n="ft.process">Process</a></li>
+            <li><a href="#atelier" data-i18n="ft.discovery">Discovery</a></li>
+            <li><a href="#atelier" data-i18n="ft.development">Development</a></li>
+          </ul>
+        </div>
+        <div class="ft-col">
+          <ul role="list">
+            <li><a href="#atelier" data-i18n="ft.delivery">Delivery</a></li>
+            <li><a href="#atelier" data-i18n="ft.testing">Testing</a></li>
+            <li><a href="#atelier" data-i18n="ft.launch">Launch &amp; Support</a></li>
+          </ul>
+        </div>
+        <div class="ft-col">
+          <ul role="list">
+            <li><a href="#contact" data-i18n="ft.contact">Contact</a></li>
+            <li><a href="#contact" data-i18n="ft.start">Start a Project</a></li>
+            <li><a href="mailto:hello@jrstudios.co">hello@jrstudios.co</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ft-rule"></div>
+
+      <!-- Social icons + back to top -->
+      <div class="ft-social-row reveal">
+        <div class="ft-icons">
+          <a href="mailto:hello@jrstudios.co" class="ft-icon-pill" aria-label="Email">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </a>
+          <a href="https://www.instagram.com/jr_studios_official" target="_blank" rel="noreferrer" class="ft-icon-pill" aria-label="Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://wa.me/972558829549" target="_blank" rel="noreferrer" class="ft-icon-pill" aria-label="WhatsApp">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+          </a>
+        </div>
+
+        <button class="ft-top-pill" id="ft-top-btn" aria-label="Back to top">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12V4M8 4L4 8M8 4L12 8"/></svg>
+          <span data-i18n="ft.top">Top</span>
+        </button>
+      </div>
+
+      <!-- Copyright -->
+      <div class="ft-copyright reveal">
+        <span>©</span>
+        <span id="ft-year">2024</span>
+        <span data-i18n="ft.copy.madewith">Made with</span>
+        <svg class="ft-heart" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+        <span data-i18n="ft.copy.by">by</span>
+        <strong>JR Studios</strong>
+      </div>
+
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
