@@ -108,13 +108,11 @@ const FilmGrainShader = {
 
 const PRESETS = {
   hero: {
-    bloomStrength:  0.85,
-    bloomRadius:    0.8,
-    bloomThreshold: 0.32,
-    // Aggressive grain + chroma was reading as "old-TV pixelation" on
-    // high-DPI screens. Scaled back to a tasteful film texture: the
-    // grain is now a hint, not a layer; chroma is on the edge of
-    // perceptibility (sub-pixel offset for the rich color edges).
+    // Slightly higher bloom to halate the new filament highlights
+    // in the hero shader without crushing midtones
+    bloomStrength:  1.05,
+    bloomRadius:    0.9,
+    bloomThreshold: 0.45,
     chromaStrength: 0.0012,
     grainIntensity: 0.014,
     enableChroma:   true,
@@ -150,12 +148,14 @@ export function buildComposer(renderer, scene, camera, { pipeline = 'hero', samp
   // renderer's antialias flag doesn't help inside the composer pipeline.
   // We give the composer a multisampled render target (MSAA) so
   // geometry edges stay smooth even with the bloom/chroma chain.
-  // samples: 4 is a good quality/perf balance; 0 = no AA (jagged),
-  // 8 = nicer but more expensive.
-  const renderTarget = new THREE.WebGLRenderTarget(size.x, size.y, {
-    samples,
-    type: THREE.HalfFloatType,  // higher precision so bloom doesn't band
-  })
+  // samples: 4 is a good quality/perf balance.
+  //
+  // No HalfFloatType — earlier attempt caused driver-dependent flicker
+  // on some GPUs (the multisampled half-float texture combo isn't
+  // universally supported). Default UnsignedByteType is rock-solid;
+  // the slight banding tradeoff is invisible in practice next to the
+  // film grain pass.
+  const renderTarget = new THREE.WebGLRenderTarget(size.x, size.y, { samples })
   const composer = new EffectComposer(renderer, renderTarget)
   composer.setSize(size.x, size.y)
   composer.setPixelRatio(renderer.getPixelRatio())

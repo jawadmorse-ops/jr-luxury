@@ -85,7 +85,12 @@ const FRAGMENT = /* glsl */ `
     // Scroll dive — as user scrolls down, the noise scale grows
     // (perceived as moving forward into the field)
     float dive = 1.0 + uScroll * 0.55;
-    vec2 p = uv * dive;
+
+    // Cursor parallax — the field offsets opposite the cursor by a
+    // tiny amount, simulating looking at a 3D scene through a window.
+    // Cheap depth, no actual 3D needed.
+    vec2 cursorOffset = (uMouse - 0.5) * vec2(-0.18, 0.18);
+    vec2 p = uv * dive + cursorOffset;
 
     // Domain warping: q distorts the lookup, then r distorts again,
     // producing the fluid-metal / nebula quality
@@ -106,35 +111,50 @@ const FRAGMENT = /* glsl */ `
     float goldMask = smoothstep(0.42, 0.92, field);
     col = mix(col, uColorGold, goldMask * 0.55);
 
+    // Bright filament highlights — concentrated where the warp is
+    // VERY high. These tiny ridges of light catch the bloom and
+    // halate, giving the field a sense of volumetric depth that
+    // pure fbm noise can't produce alone. Active Theory–signature
+    // "streaming light" feel.
+    float filament = smoothstep(0.78, 0.96, field);
+    col += uColorGold * filament * 0.85;
+
     // Indigo veins — drawn from the inner warp magnitude, bias to the
     // upper half of the screen so it reads as cool depth above
     float indigoMask = smoothstep(0.45, 0.85, dot(r, r) * 0.55);
     indigoMask *= smoothstep(-0.3, 0.6, uv.y);
     col = mix(col, uColorIndigo, indigoMask * 0.40);
 
+    // Indigo filament highlights — mirror the gold filaments but cooler
+    float indigoFil = smoothstep(0.74, 0.92, dot(r, r) * 0.55);
+    col += uColorIndigo * indigoFil * 0.45 * smoothstep(-0.2, 0.5, uv.y);
+
     // Rose blooms — pulled from the q-magnitude and biased lower
     float roseMask = smoothstep(0.50, 0.78, length(q));
     roseMask *= smoothstep(0.6, -0.4, uv.y);
     col = mix(col, uColorRose, roseMask * 0.30);
+
+    // Rose filament highlights at the bottom edge — adds depth contrast
+    float roseFil = smoothstep(0.72, 0.88, length(q));
+    col += uColorRose * roseFil * 0.40 * smoothstep(0.5, -0.4, uv.y);
 
     // Cursor warm halo — molten gold pool that follows the mouse
     vec2 mp = (uMouse * 2.0 - 1.0);
     mp.x *= uResolution.x / max(uResolution.y, 1.0);
     float dCursor = distance(uv, mp);
     float halo = smoothstep(0.55, 0.0, dCursor);
-    col += uColorGold * halo * 0.18;
+    col += uColorGold * halo * 0.22;
 
     // Subtle warm shift on scroll — palette warms as the user dives
     col = mix(col, col * vec3(1.05, 0.96, 0.88), uScroll * 0.35);
 
-    // Vignette — keeps eyes on the headline center, falls off to edges
+    // Vignette — keeps eyes on the headline center, falls off to edges.
+    // Slightly tighter (0.4 → 0.35 inner) so the center reads more
+    // luminous against the darker edges
     float vig = smoothstep(1.5, 0.35, length(uv));
-    col *= mix(0.55, 1.0, vig);
+    col *= mix(0.50, 1.0, vig);
 
     // Subtle film grain so the dark areas don't band on cheap displays.
-    // Reduced from 0.018 to 0.008 — was reading as "old TV static"
-    // on high-DPI screens. Combined with the post-processing grain
-    // pass at 0.014 it's now a tasteful texture, not noise.
     float grain = (hash(vUv * uResolution.xy + uTime) - 0.5) * 0.008;
     col += grain;
 
