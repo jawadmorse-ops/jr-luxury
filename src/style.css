@@ -458,6 +458,25 @@ section { padding: clamp(5rem, 10vw, 9rem) 0; }
   pointer-events: none;
 }
 
+/* Global GLSL beams — fixed full-viewport canvas behind all content.
+   Hero's opaque WebGL canvas covers it during the hero section; in
+   dark content sections (philosophy, materials, atelier, testimonials,
+   contact, footer) the beams show through transparent backgrounds. */
+#global-beams-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+  /* Hidden by default — IntersectionObserver in beams-background.js
+     fades opacity to 1 once the hero exits the viewport. Prevents
+     beams from peeking out around the hero canvas at scrollY = 0. */
+  opacity: 0;
+  transition: opacity 700ms ease-out;
+}
+
 #hero-react-root {
   position: relative;
   z-index: 1;
@@ -2202,4 +2221,23 @@ body {
 [lang="he"] h2,
 [lang="he"] h3 {
   letter-spacing: 0;
+}
+
+/* ── Phase 5: GLSL beams visibility ─────────────────────────────
+   The global beams canvas (position: fixed, z-index: 0) renders
+   behind body content. Dark sections used to set background:#030303
+   which made them OPAQUE and blocked the beams. Override to
+   transparent so beams show through. Body still has #030303 as a
+   fallback for the dim space between rays. */
+#philosophy,
+#materials,
+#atelier,
+#testimonials,
+#contact {
+  background: transparent;
+}
+/* The body's own bg becomes the safe fallback when WebGL is
+   disabled or before the canvas mounts */
+body {
+  background: #030303;
 }
