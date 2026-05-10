@@ -228,12 +228,13 @@ export function initHeroWebGL(prefersReducedMotion) {
     uniforms.uScroll.value = progress
 
     // Bridge fade — hero canvas opacity ramps from 1 to 0 across the
-    // 35-75% scroll window. The global beams fade IN around the same
-    // time (their threshold is 60% of hero), so the visitor never
-    // sees a dead empty WebGL field. Continuity instead of gap.
-    const fade = progress < 0.35 ? 1 :
-                 progress > 0.75 ? 0 :
-                 1 - (progress - 0.35) / 0.4
+    // 55-90% scroll window. Holds full hero atmosphere longer (text
+    // exits at 75%, so visuals + text overlap through the middle),
+    // then fades the canvas just before the section boundary. Beams
+    // ramp in around 60%, providing the visual handoff.
+    const fade = progress < 0.55 ? 1 :
+                 progress > 0.90 ? 0 :
+                 1 - (progress - 0.55) / 0.35
     if (Math.abs(fade - lastFade) > 0.005) {
       canvas.style.opacity = fade.toFixed(3)
       lastFade = fade

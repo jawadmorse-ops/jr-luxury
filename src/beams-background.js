@@ -113,15 +113,16 @@ const FRAGMENT = /* glsl */ `
     float r5 = ray(uv, 0.85, 0.09, scrollY * 0.95);
     float r6 = ray(uv, 0.93, 0.18, scrollY * 1.4);
 
-    // Beam brightness — tuned so the rays read clearly against the
-    // near-black background but don't compete with hero/service WebGL
+    // Beam brightness — dialed back so they're an atmosphere, not a
+    // wall. Was washing out card text on top of them; halved the
+    // multipliers so the rays whisper instead of shout.
     vec3 col = vec3(0.0);
-    col += hueCold   * r1 * 1.10;
-    col += hueWarm   * r2 * 1.40;
-    col += hueAccent * r3 * 0.95;
-    col += hueWarm   * r4 * 1.25;
-    col += hueCold   * r5 * 1.00;
-    col += hueAccent * r6 * 1.10;
+    col += hueCold   * r1 * 0.55;
+    col += hueWarm   * r2 * 0.70;
+    col += hueAccent * r3 * 0.48;
+    col += hueWarm   * r4 * 0.62;
+    col += hueCold   * r5 * 0.50;
+    col += hueAccent * r6 * 0.55;
 
     // Slow horizontal hue drift — palette breathes across rays
     float drift = 0.5 + 0.5 * sin(uTime * 0.18);

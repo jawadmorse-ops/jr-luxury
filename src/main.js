@@ -210,13 +210,14 @@ function initKineticType() {
     scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true },
   })
 
-  // Hero exit — the entire React root (badge + headline + subtitle +
-  // CTAs) scales up slightly, fades, and softens as the user scrolls
-  // past. Reads as the camera diving forward through the typography
-  // into the WebGL nebula behind it. Scrub-driven so the user has
-  // tactile control over the exit moment. Tightened from 15→85% to
-  // 10→55% so text exits well before the section ends — no dead
-  // air between the empty-text state and the marquee that follows.
+  // Hero exit — text scales up slightly, fades, and softens as the
+  // user scrolls past. Reads as the camera diving forward through
+  // the typography into the WebGL nebula behind it.
+  // Range tuned: 25 → 75%. Text holds visible through the first
+  // quarter of scroll (so it's not exiting the moment you start
+  // scrolling), then fades over the middle half. By the time the
+  // last quarter of hero is scrolled past, the text is gone but
+  // the next section is already mostly in view — no dead air.
   gsap.to('#hero-react-root', {
     scale: 1.08,
     opacity: 0,
@@ -224,8 +225,8 @@ function initKineticType() {
     ease: 'none',
     scrollTrigger: {
       trigger: '#hero',
-      start: '10% top',
-      end: '55% top',
+      start: '25% top',
+      end: '75% top',
       scrub: 1,
     },
   })
@@ -398,24 +399,9 @@ function initProductReveal() {
     )
   })
 
-  // ── Section eyebrow + h2 character-style reveal ─────────
-  // For the most prominent headline ("Every service. Pixel perfect.")
-  // we layer an extra opacity/letter-spacing scrub on top of the
-  // existing yPercent reveal — the type "tightens" as it enters
-  gsap.fromTo('.section-header h2',
-    { letterSpacing: '0.06em', filter: 'blur(6px)' },
-    {
-      letterSpacing: '-0.025em',
-      filter: 'blur(0px)',
-      ease: 'none',
-      scrollTrigger: {
-        trigger: '.section-header h2',
-        start: 'top 90%',
-        end: 'top 50%',
-        scrub: 1,
-      },
-    }
-  )
+  // (Earlier I added a blur+letter-spacing scrub here; it left the
+  // section headlines unreadable while mid-reveal. Removed — the
+  // existing yPercent reveal upstream is plenty cinematic.)
 }
 
 // ─── Private Collection — stagger rotate-in + parallax ─

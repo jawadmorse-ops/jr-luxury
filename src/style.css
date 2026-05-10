@@ -264,7 +264,10 @@ em { font-style: italic; color: var(--c-gold-light); }
   padding: 0 clamp(1.5rem, 5vw, 4rem);
 }
 
-section { padding: clamp(5rem, 10vw, 9rem) 0; }
+/* Tighter section padding — was clamp(5rem, 10vw, 9rem) which produced
+   144px of dead air at large viewports between sections, contributing
+   to the perceived "gap" between hero and the first content. */
+section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
 
 /* ─── Buttons ────────────────────────────────────────── */
 .btn-primary {
@@ -1380,8 +1383,13 @@ section { padding: clamp(5rem, 10vw, 9rem) 0; }
 }
 .material-card {
   padding: 0 0 2.5rem;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
+  /* Solid-ish dark fill + backdrop blur so the beams behind become
+     a soft glow under the card, not a wall of light bleeding through
+     the text. Text now has a real background to read against. */
+  background: rgba(10,10,14,0.72);
+  backdrop-filter: blur(14px) saturate(110%);
+  -webkit-backdrop-filter: blur(14px) saturate(110%);
+  border: 1px solid rgba(255,255,255,0.06);
   border-top: 2px solid transparent;
   transition: border-color 0.4s var(--ease), background 0.4s var(--ease);
   overflow: hidden;
@@ -1389,7 +1397,7 @@ section { padding: clamp(5rem, 10vw, 9rem) 0; }
   z-index: 1;
   text-align: center;
 }
-.material-card:hover { border-top-color: var(--c-gold); background: rgba(255,255,255,0.04); }
+.material-card:hover { border-top-color: var(--c-gold); background: rgba(14,14,18,0.78); }
 .material-card h3 { font-size: 1.4rem; font-weight: 400; color: var(--c-ivory); margin-bottom: 0.9rem; padding: 0 2rem; }
 .material-card p  { font-size: 0.85rem; color: var(--c-muted); line-height: 1.88; padding: 0 2rem; }
 
