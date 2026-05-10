@@ -1,6 +1,121 @@
 import * as THREE from 'three'
 import { buildComposer } from './postprocessing.js'
 
+// ── Service shader — vertex displacement + fresnel rim + color drift ─
+//
+// Each card's geometry shares this shader; per-shape config controls
+// the personality (displacement amount + color pair). The result is
+// three distinct "moods" instead of three identical metal primitives.
+
+const SERVICE_VERTEX = /* glsl */ `
+  uniform float uTime;
+  uniform float uDisplace;
+  uniform float uFreq;
+
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+  varying float vDisp;
+
+  // Cheap 3D hash + value-noise — adequate for low-frequency vertex
+  // displacement. We don't need crystal-clean noise here, we need
+  // something that breathes.
+  float hash3(vec3 p) {
+    return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
+  }
+  float noise3(vec3 p) {
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+    vec3 u = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(mix(hash3(i + vec3(0,0,0)), hash3(i + vec3(1,0,0)), u.x),
+          mix(hash3(i + vec3(0,1,0)), hash3(i + vec3(1,1,0)), u.x), u.y),
+      mix(mix(hash3(i + vec3(0,0,1)), hash3(i + vec3(1,0,1)), u.x),
+          mix(hash3(i + vec3(0,1,1)), hash3(i + vec3(1,1,1)), u.x), u.y),
+      u.z
+    );
+  }
+
+  void main() {
+    vec3 pos = position;
+    float t = uTime * 0.5;
+    // Two layers of displacement so the surface breathes at two cadences
+    float n =
+      noise3(pos * uFreq + vec3(t, t * 0.7, -t * 0.5)) * 0.65 +
+      noise3(pos * uFreq * 2.1 - vec3(t * 1.2, t * 0.4, t * 0.9)) * 0.35;
+    vDisp = n;
+    pos += normal * n * uDisplace;
+
+    vNormal = normalize(normalMatrix * normal);
+    vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+    vPosition = mv.xyz;
+    gl_Position = projectionMatrix * mv;
+  }
+`
+
+const SERVICE_FRAGMENT = /* glsl */ `
+  precision highp float;
+
+  uniform vec3 uColorA;     // base / shadow side
+  uniform vec3 uColorB;     // highlight / rim side
+  uniform float uTime;
+
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+  varying float vDisp;
+
+  void main() {
+    vec3 viewDir = normalize(-vPosition);
+    // Tight fresnel — power=3.6 keeps rim concentrated at the silhouette
+    // edge instead of blooming over the entire surface
+    float fresnel = pow(1.0 - max(dot(vNormal, viewDir), 0.0), 3.6);
+
+    // Base lit by the displacement value — high regions warmer than
+    // valleys, giving organic contrast that reads as topography
+    vec3 col = mix(uColorA, uColorA * 1.6, smoothstep(-0.4, 0.4, vDisp));
+
+    // Mid-tone gold pickup at moderate angles — adds light specular
+    // without becoming bloom-bait
+    float midSpec = smoothstep(0.55, 0.95, 1.0 - max(dot(vNormal, viewDir), 0.0));
+    col = mix(col, uColorB * 0.35, midSpec);
+
+    // Concentrated rim — only the silhouette edge punches above 1.0
+    // (this is what bloom will halate around — clean ring, not a wash)
+    col += uColorB * fresnel * 0.85;
+
+    // Subtle slow color breath
+    col *= 0.92 + 0.10 * sin(uTime * 0.4 + vDisp * 4.0);
+
+    gl_FragColor = vec4(col, 1.0);
+  }
+`
+
+// Per-shape personality. Higher uDisplace = more organic/molten, lower
+// = more crystalline/refined. Color pairs nudge each scene into its
+// own register without breaking the unified gold-anchored palette.
+const SHADER_CONFIG = {
+  icosahedron: {
+    // Web Design & Development — crystalline, digital
+    displace: 0.06,
+    freq:     1.4,
+    colorA:   0x1a1820,
+    colorB:   0xC9A96E,    // gold rim
+  },
+  torusknot: {
+    // 3D & WebGL Experiences — molten, dramatic
+    displace: 0.18,
+    freq:     0.9,
+    colorA:   0x2a1118,
+    colorB:   0xE5B584,    // warm gold + slight rose lean
+  },
+  octahedron: {
+    // Brand Identity & Strategy — refined, faceted
+    displace: 0.04,
+    freq:     1.1,
+    colorA:   0x141214,
+    colorB:   0xD4B87A,    // softer gold
+  },
+}
+
 // ── Mini 3D scene for each service card ─────────────────────────────
 function createServiceScene(canvas) {
   const shape = canvas.dataset.shape || 'icosahedron'
@@ -19,38 +134,40 @@ function createServiceScene(canvas) {
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100)
   camera.position.z = 3.4
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.12))
-
-  const keyLight = new THREE.PointLight(0xD4A96E, 6, 12)
-  keyLight.position.set(2, 3, 3)
-  scene.add(keyLight)
-
-  const rimLight = new THREE.PointLight(0xA8C4C8, 3, 8)
-  rimLight.position.set(-2.5, -1, 1)
-  scene.add(rimLight)
-
+  // No three.js lighting needed — shader bakes its own fresnel rim
   let geo
   switch (shape) {
     case 'torusknot':
-      geo = new THREE.TorusKnotGeometry(0.7, 0.24, 140, 18, 2, 3)
+      // High tube/radial segments for smooth displacement
+      geo = new THREE.TorusKnotGeometry(0.7, 0.24, 220, 36, 2, 3)
       break
     case 'octahedron':
-      geo = new THREE.OctahedronGeometry(1.05, 0)
+      // detail=4 → enough subdivisions for displacement to breathe
+      geo = new THREE.OctahedronGeometry(1.05, 4)
       break
     default: // icosahedron
-      geo = new THREE.IcosahedronGeometry(1.05, 0)
+      geo = new THREE.IcosahedronGeometry(1.05, 4)
   }
 
-  const mat = new THREE.MeshStandardMaterial({
-    color:     0xC9A96E,
-    metalness: 0.94,
-    roughness: 0.06,
+  const cfg = SHADER_CONFIG[shape] ?? SHADER_CONFIG.icosahedron
+  const mat = new THREE.ShaderMaterial({
+    vertexShader:   SERVICE_VERTEX,
+    fragmentShader: SERVICE_FRAGMENT,
+    uniforms: {
+      uTime:     { value: 0 },
+      uDisplace: { value: cfg.displace },
+      uFreq:     { value: cfg.freq },
+      uColorA:   { value: new THREE.Color(cfg.colorA) },
+      uColorB:   { value: new THREE.Color(cfg.colorB) },
+    },
   })
   const mesh = new THREE.Mesh(geo, mat)
   scene.add(mesh)
 
+  // Faint wireframe overlay catches the high-displacement peaks and
+  // gives each shape a subtle "wireframe halo" that bloom amplifies
   const wireMat = new THREE.MeshBasicMaterial({
-    color: 0xD4B87A, wireframe: true, transparent: true, opacity: 0.08,
+    color: cfg.colorB, wireframe: true, transparent: true, opacity: 0.06,
   })
   scene.add(new THREE.Mesh(geo, wireMat))
 
@@ -94,6 +211,7 @@ function createServiceScene(canvas) {
 
     mesh.rotation.x = time * 0.22 + cRX
     mesh.rotation.y = time * 0.36 + cRY
+    mat.uniforms.uTime.value = time
 
     post.setGrainTime(time)
     post.composer.render()

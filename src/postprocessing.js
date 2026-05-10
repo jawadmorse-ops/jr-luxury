@@ -117,9 +117,11 @@ const PRESETS = {
     enableGrain:    true,
   },
   subtle: {
-    bloomStrength:  0.55,
-    bloomRadius:    0.6,
-    bloomThreshold: 0.5,
+    bloomStrength:  0.6,
+    bloomRadius:    0.55,
+    // Higher threshold so only the silhouette rim blooms — keeps the
+    // geometry's facets and displacement legible underneath
+    bloomThreshold: 0.78,
     chromaStrength: 0.0014,
     grainIntensity: 0.022,
     enableChroma:   false,
