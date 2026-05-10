@@ -2276,6 +2276,53 @@ body {
   letter-spacing: 0;
 }
 
+/* ── Mobile-specific rescue pass ────────────────────────────────
+   Desktop looks tight; mobile looked horrible per real-world test.
+   The big culprits at phone scale:
+     1. Global beams dominate a 6" screen as garish loud columns
+     2. backdrop-filter blur on cards is ugly + slow on iOS Safari
+     3. Hero shader at desktop intensity competes with text
+     4. Section padding cuts too tight, type cramps against edges
+     5. Custom cursor wrappers can leave ghost artifacts on touch
+   This block addresses each defensively. Desktop unaffected. */
+@media (max-width: 768px), (pointer: coarse) {
+
+  /* Beams: hide entirely on mobile. They're decorative atmosphere
+     and at small viewport they read as garish noise behind text.
+     The hero WebGL canvas already handles "premium feel"; in dark
+     content sections, the plain near-black background is what we
+     want — clean and legible. */
+  #global-beams-canvas { display: none !important; }
+
+  /* Material cards: drop backdrop-filter (expensive + ugly on iOS),
+     use solid dark fill so text reads crisp without any GPU blur */
+  .material-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(10, 10, 14, 0.92) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* Custom cursor stack — guarantee hidden on touch (the existing
+     hover: none rule should already do this but belt + braces) */
+  #cursor-dot, #cursor-ring, #cursor-label {
+    display: none !important;
+  }
+
+  /* Hero canvas: keep but pull intensity back so it supports the
+     headline instead of fighting it on a 6" screen */
+  .hero-webgl-canvas { opacity: 0.78; }
+
+  /* Section padding: a touch more breathing room on mobile than
+     the tight desktop rhythm (3rem is fine on wide screens, feels
+     cramped between thumb-distance sections on phones) */
+  section { padding: clamp(3.5rem, 12vw, 5rem) 0; }
+
+  /* Material grid: slightly more vertical separation between
+     stacked cards on mobile so they don't feel piled */
+  .materials-grid { gap: 1.25rem; }
+}
+
 /* ── Phase 5: GLSL beams visibility ─────────────────────────────
    The global beams canvas (position: fixed, z-index: 0) renders
    behind body content. Dark sections used to set background:#030303
