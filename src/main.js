@@ -210,17 +210,49 @@ function initKineticType() {
     scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true },
   })
 
-  // Section h2 kinetic reveal — each wipes up from overflow:hidden parent
+  // Hero exit — the entire React root (badge + headline + subtitle +
+  // CTAs) scales up slightly, fades, and softens as the user scrolls
+  // past. Reads as the camera diving forward through the typography
+  // into the WebGL nebula behind it. Scrub-driven so the user has
+  // tactile control over the exit moment.
+  gsap.to('#hero-react-root', {
+    scale: 1.08,
+    opacity: 0,
+    filter: 'blur(8px)',
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '#hero',
+      start: '15% top',
+      end: '85% top',
+      scrub: 1,
+    },
+  })
+
+  // Section h2 kinetic reveal — wipe up from overflow:hidden parent.
+  // Scrub-driven (not once-fire) so the heading animates throughout
+  // its ScrollTrigger range instead of snapping once on enter. The
+  // result feels alive while the user scrolls — Active Theory
+  // signature for editorial typography.
   gsap.utils.toArray([
     '.section-header h2',
     '.philosophy-text h2',
     '.contact-text h2',
     '.testimonial-inner blockquote p',
   ]).forEach(el => {
-    gsap.from(el, {
-      yPercent: 35, opacity: 0, duration: 1.4, ease: 'expo.out',
-      scrollTrigger: { trigger: el, start: 'top 88%' },
-    })
+    gsap.fromTo(el,
+      { yPercent: 60, opacity: 0 },
+      {
+        yPercent: 0,
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 95%',
+          end: 'top 55%',
+          scrub: 1.2,
+        },
+      }
+    )
   })
 
   // Section eyebrows slide in from left
