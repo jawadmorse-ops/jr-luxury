@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
 import { initServiceScenes }    from './service-scenes.js'
 import { initBeamsBackground }  from './beams-background.js'
+import { initHeroWebGL }        from './hero-webgl.js'
 import { createElement }  from 'react'
 import { createRoot }     from 'react-dom/client'
 import { HeroGeometric }  from './components/HeroGeometric.jsx'
@@ -73,6 +74,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   initI18n(renderHero)
+  initHeroWebGL(prefersReducedMotion)
   initBeamsBackground(prefersReducedMotion)
   initResizeRefresh()
   initPreloader()

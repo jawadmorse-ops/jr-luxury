@@ -1,75 +1,13 @@
 "use client";
 
+// Visual takeover — the elegant blurred-div shapes that used to live
+// here have been replaced by a full-screen WebGL fragment shader
+// (see src/hero-webgl.js). This component now owns ONLY the text +
+// CTA layout; the WebGL canvas is mounted independently into the
+// `<canvas class="hero-webgl-canvas">` element in index.html.
+
 import { motion } from "framer-motion";
 import { Circle } from "lucide-react";
-
-function cn(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
-
-function ElegantShape({
-  className,
-  delay = 0,
-  width = 400,
-  height = 100,
-  rotate = 0,
-  gradient = "from-white/[0.08]",
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -150, rotate: rotate - 15 }}
-      animate={{ opacity: 1, y: 0, rotate }}
-      transition={{
-        duration: 2.4,
-        delay,
-        ease: [0.23, 0.86, 0.39, 0.96],
-        opacity: { duration: 1.2 },
-      }}
-      style={{ position: "absolute" }}
-      className={className}
-    >
-      <motion.div
-        animate={{ y: [0, 15, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        style={{ width, height, position: "relative" }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "9999px",
-            backdropFilter: "blur(2px)",
-            WebkitBackdropFilter: "blur(2px)",
-            border: "2px solid rgba(255,255,255,0.15)",
-            boxShadow: "0 8px 32px 0 rgba(255,255,255,0.10)",
-            background: gradientToCss(gradient),
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              borderRadius: "9999px",
-              background:
-                "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.20), transparent 70%)",
-            }}
-          />
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-function gradientToCss(tailwindGradient) {
-  const map = {
-    "from-indigo-500/[0.15]": "linear-gradient(to right, rgba(99,102,241,0.15), transparent)",
-    "from-rose-500/[0.15]":   "linear-gradient(to right, rgba(244,63,94,0.15), transparent)",
-    "from-violet-500/[0.15]": "linear-gradient(to right, rgba(139,92,246,0.15), transparent)",
-    "from-amber-500/[0.15]":  "linear-gradient(to right, rgba(245,158,11,0.15), transparent)",
-    "from-cyan-500/[0.15]":   "linear-gradient(to right, rgba(6,182,212,0.15), transparent)",
-  };
-  return map[tailwindGradient] ?? "linear-gradient(to right, rgba(255,255,255,0.08), transparent)";
-}
 
 export function HeroGeometric({
   badge    = "Design Collective",
@@ -101,65 +39,10 @@ export function HeroGeometric({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#030303",
+        // No background — the WebGL canvas behind handles it
+        background: "transparent",
       }}
     >
-      {/* Ambient gradient — bg-gradient-to-br from-indigo-500/[0.05] to-rose-500/[0.05] blur-3xl */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(to bottom right, rgba(99,102,241,0.05), transparent, rgba(244,63,94,0.05))",
-          filter: "blur(72px)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* 5 ElegantShapes */}
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-        <ElegantShape
-          delay={0.3}
-          width={600}
-          height={140}
-          rotate={12}
-          gradient="from-indigo-500/[0.15]"
-          className="hero-shape-1"
-        />
-        <ElegantShape
-          delay={0.5}
-          width={500}
-          height={120}
-          rotate={-15}
-          gradient="from-rose-500/[0.15]"
-          className="hero-shape-2"
-        />
-        <ElegantShape
-          delay={0.4}
-          width={300}
-          height={80}
-          rotate={-8}
-          gradient="from-violet-500/[0.15]"
-          className="hero-shape-3"
-        />
-        <ElegantShape
-          delay={0.6}
-          width={200}
-          height={60}
-          rotate={20}
-          gradient="from-amber-500/[0.15]"
-          className="hero-shape-4"
-        />
-        <ElegantShape
-          delay={0.7}
-          width={150}
-          height={40}
-          rotate={-25}
-          gradient="from-cyan-500/[0.15]"
-          className="hero-shape-5"
-        />
-      </div>
-
       {/* Content */}
       <div
         style={{
@@ -309,13 +192,15 @@ export function HeroGeometric({
         </div>
       </div>
 
-      {/* Bottom/top fade overlay */}
+      {/* Bottom/top fade overlay — keeps text legible against the
+          WebGL field's varying brightness, and bridges into the next
+          section's solid black */}
       <div
         style={{
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(to top, #030303 0%, transparent 50%, rgba(3,3,3,0.80) 100%)",
+            "linear-gradient(to top, #030303 0%, transparent 30%, rgba(3,3,3,0.55) 100%)",
           pointerEvents: "none",
         }}
       />
