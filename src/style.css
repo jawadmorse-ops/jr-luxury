@@ -154,8 +154,40 @@ body.cursor--press #cursor-ring { transform: translate(-50%,-50%) scale(0.8); op
 body.cursor--card #cursor-dot  { width: 3px; height: 3px; }
 body.cursor--card #cursor-ring { width: 48px; height: 48px; border-color: rgba(201,169,110,0.35); border-radius: 0; }
 
+/* CTA cursor — pill shape with embedded action label.
+   Mix-blend-mode normal here so the label text reads cleanly. */
+#cursor-label {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  height: 0;
+  border-radius: 9999px;
+  background: var(--c-gold);
+  color: #050505;
+  font-family: var(--f-sans, 'Montserrat', sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0;
+  white-space: nowrap;
+  transition: height 0.32s var(--ease-out), opacity 0.25s var(--ease-out),
+              padding 0.32s var(--ease-out);
+  will-change: left, top, opacity;
+}
+body.cursor--cta #cursor-label { height: 44px; opacity: 1; }
+body.cursor--cta #cursor-dot   { opacity: 0; transition: opacity 0.2s; }
+body.cursor--cta #cursor-ring  { opacity: 0; transition: opacity 0.2s; }
+
 @media (hover: none) {
-  #cursor-dot, #cursor-ring { display: none; }
+  #cursor-dot, #cursor-ring, #cursor-label { display: none; }
 }
 
 /* ─── Scroll Progress ─────────────────────────────────── */

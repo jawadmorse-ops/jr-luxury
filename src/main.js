@@ -529,11 +529,19 @@ function initProductImages() {
   })
 }
 
-// ─── Custom cursor ─────────────────────────────────────
+// ─── Custom cursor — morphs based on what's hovered ─────
+//
+// Default: small dot + lerped ring
+// Hover (link/button/input): dot + ring scale up
+// CTA (data-cursor or .btn-primary/.btn-ghost/.nav-cta): cursor
+//   morphs into a pill with action label (e.g., "Start", "View")
+// Press: compressed
 function initCursor() {
-  const dot  = document.getElementById('cursor-dot')
-  const ring = document.getElementById('cursor-ring')
-  if (!dot || !ring || isTouch) return
+  const dot   = document.getElementById('cursor-dot')
+  const ring  = document.getElementById('cursor-ring')
+  const label = document.getElementById('cursor-label')
+  const labelText = label?.querySelector('span')
+  if (!dot || !ring || !label || isTouch) return
 
   let mx = -200, my = -200
   let rx = -200, ry = -200
@@ -547,24 +555,60 @@ function initCursor() {
   ;(function tick() {
     rx += (mx - rx) * 0.115
     ry += (my - ry) * 0.115
-    ring.style.left = rx + 'px'
-    ring.style.top  = ry + 'px'
+    ring.style.left  = rx + 'px'
+    ring.style.top   = ry + 'px'
+    // Label follows the lerped ring — feels intentional rather than
+    // jittery; the small offset from cursor position reads as weight
+    label.style.left = rx + 'px'
+    label.style.top  = ry + 'px'
     requestAnimationFrame(tick)
   })()
 
+  // Hover detection — three contexts control which class lands on body.
+  // Priority: CTA > card > hover > none. Mutually exclusive.
+  const CTA_SELECTOR  = '.btn-primary, .btn-ghost, .nav-cta, [data-cursor]'
+  const CARD_SELECTOR = '.material-card, .prv-card, .product-card, img'
+  const HOVER_SELECTOR = 'a, button, input, select, textarea, label'
+
   document.addEventListener('mouseover', e => {
     const t = e.target
-    if (t.closest('a, button, input, select, textarea, label, .material-card')) {
-      document.body.classList.add('cursor--hover')
+    const cls = document.body.classList
+
+    const cta = t.closest?.(CTA_SELECTOR)
+    if (cta) {
+      // Read label from data-cursor or fall back to short verb derived
+      // from the element's own text. "Start a Project" → "Start"
+      const explicit = cta.getAttribute('data-cursor')
+      const text = explicit ?? (cta.textContent?.trim().split(/\s+/)[0] || 'View')
+      if (labelText) labelText.textContent = text
+      cls.add('cursor--cta')
+      cls.remove('cursor--hover', 'cursor--card')
+      return
+    }
+
+    const card = t.closest?.(CARD_SELECTOR)
+    if (card) {
+      cls.add('cursor--card')
+      cls.remove('cursor--hover', 'cursor--cta')
+      return
+    }
+
+    cls.remove('cursor--cta', 'cursor--card')
+    if (t.closest?.(HOVER_SELECTOR)) {
+      cls.add('cursor--hover')
     } else {
-      document.body.classList.remove('cursor--hover')
+      cls.remove('cursor--hover')
     }
   })
 
   document.addEventListener('mousedown',  () => document.body.classList.add('cursor--press'))
   document.addEventListener('mouseup',    () => document.body.classList.remove('cursor--press'))
-  document.addEventListener('mouseleave', () => { dot.style.opacity = '0'; ring.style.opacity = '0' })
-  document.addEventListener('mouseenter', () => { dot.style.opacity = '';  ring.style.opacity = '' })
+  document.addEventListener('mouseleave', () => {
+    dot.style.opacity = '0'; ring.style.opacity = '0'; label.style.opacity = '0'
+  })
+  document.addEventListener('mouseenter', () => {
+    dot.style.opacity = '';  ring.style.opacity = '';  label.style.opacity = ''
+  })
 }
 
 // ─── Scroll progress bar ───────────────────────────────
