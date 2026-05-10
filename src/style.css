@@ -2050,6 +2050,32 @@ body {
   .footer-bottom        { flex-direction: column; gap: 1rem; text-align: center; }
 }
 
+/* ─── Beams Background ───────────────────────────── */
+.beams-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(15px);
+}
+
+
+/* Section content above beams */
+#philosophy .philosophy-inner,
+#philosophy .philosophy-canvas,
+#materials .container,
+#atelier .container,
+#testimonials .testimonial-inner,
+#contact .container { position: relative; z-index: 1; }
+
+#footer .ft-brand-row,
+#footer .ft-rule,
+#footer .ft-nav-grid,
+#footer .ft-social-row,
+#footer .ft-copyright { position: relative; z-index: 1; }
+
 /* ─── Language Switcher ──────────────────────────── */
 .lang-switcher {
   display: flex;

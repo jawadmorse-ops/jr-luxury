@@ -1,7 +1,9 @@
 import './style.css'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { initServiceScenes } from './service-scenes.js'
+import Lenis from 'lenis'
+import { initServiceScenes }    from './service-scenes.js'
+import { initBeamsBackground }  from './beams-background.js'
 import { createElement }  from 'react'
 import { createRoot }     from 'react-dom/client'
 import { HeroGeometric }  from './components/HeroGeometric.jsx'
@@ -13,6 +15,38 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
 const isTouch = window.matchMedia('(hover: none)').matches
 
 if (prefersReducedMotion) gsap.globalTimeline.timeScale(50)
+
+// ─── Lenis smooth scroll ───────────────────────────────
+//
+// One Lenis instance for the whole app, exposed on window so any
+// component can scrollTo() through it (anchor links, footer "back to
+// top", future programmatic moves). Driven by GSAP's ticker so any
+// ScrollTrigger pin/scrub stays perfectly in phase with the smooth
+// scroll position. Reduce-motion users skip Lenis entirely and fall
+// back to native instant scroll — no surprise inertial behavior.
+let lenis = null
+if (!prefersReducedMotion) {
+  lenis = new Lenis({
+    // 0.1 = warm/cinematic. Higher = snappier. AT-tier sites land here.
+    lerp: 0.1,
+    duration: 1.2,
+    smoothWheel: true,
+    // Touch keeps native momentum — Lenis only intercepts wheel.
+    syncTouch: false,
+    wheelMultiplier: 1,
+    touchMultiplier: 1,
+  })
+  // Drive Lenis raf via GSAP ticker so ScrollTrigger and Lenis share
+  // a single clock. lagSmoothing(0) prevents the catch-up jump after
+  // a tab returns from background.
+  gsap.ticker.add((time) => lenis.raf(time * 1000))
+  gsap.ticker.lagSmoothing(0)
+  // ScrollTrigger refresh on every Lenis scroll event ensures pins
+  // and scrubs use Lenis-driven scroll values, not native scrollY.
+  lenis.on('scroll', ScrollTrigger.update)
+  // Expose for anchor-link handler + future programmatic use
+  window.__lenis = lenis
+}
 
 let _heroReactRoot = null
 
@@ -39,6 +73,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   initI18n(renderHero)
+  initBeamsBackground(prefersReducedMotion)
   initResizeRefresh()
   initPreloader()
   initServiceScenes(prefersReducedMotion)
@@ -679,6 +714,9 @@ function initMobileMenu() {
 }
 
 // ─── Smooth scroll + close mobile on anchor click ─────
+//
+// Anchor click → Lenis scrollTo for buttery weighted ride. Falls back
+// to native scrollTo on reduce-motion (where Lenis isn't initialized).
 function initSmoothScroll() {
   const nav = document.getElementById('nav')
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -690,10 +728,18 @@ function initSmoothScroll() {
       e.preventDefault()
       window._closeMenu?.()
       const offset = (nav?.offsetHeight ?? 0) + 16
-      window.scrollTo({
-        top: target.getBoundingClientRect().top + window.scrollY - offset,
-        behavior: 'smooth',
-      })
+      const top = target.getBoundingClientRect().top + window.scrollY - offset
+
+      if (window.__lenis) {
+        window.__lenis.scrollTo(top, {
+          duration: 1.2,
+          // expo.inOut feels intentional — not slow, not abrupt
+          easing: (x) => x === 0 ? 0 : x === 1 ? 1 :
+            x < 0.5 ? Math.pow(2, 20 * x - 10) / 2 : (2 - Math.pow(2, -20 * x + 10)) / 2,
+        })
+      } else {
+        window.scrollTo({ top, behavior: 'smooth' })
+      }
     })
   })
 }
@@ -704,7 +750,11 @@ function initFooter() {
   if (yearEl) yearEl.textContent = new Date().getFullYear()
 
   document.getElementById('ft-top-btn')?.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (window.__lenis) {
+      window.__lenis.scrollTo(0, { duration: 1.4 })
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   })
 }
 
