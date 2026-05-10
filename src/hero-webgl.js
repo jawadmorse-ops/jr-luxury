@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { buildComposer } from './postprocessing.js'
 
 /**
  * The hero's WebGL background — a custom GLSL fragment shader that
@@ -191,11 +192,18 @@ export function initHeroWebGL(prefersReducedMotion) {
     }, { passive: true })
   }
 
+  // ── Post-processing ─────────────────────────────────────
+  // Hero gets the full pipeline: bloom + chromatic aberration + film
+  // grain + tone-mapped output. This is where the cinematic gold pulses
+  // turn into actual halation.
+  const post = buildComposer(renderer, scene, camera, { pipeline: 'hero' })
+
   // ── Resize ──────────────────────────────────────────────
   function resize() {
     const w = canvas.clientWidth || window.innerWidth
     const h = canvas.clientHeight || window.innerHeight
     renderer.setSize(w, h, false)
+    post.setSize(w, h)
     uniforms.uResolution.value.set(w, h)
   }
   resize()
@@ -228,7 +236,8 @@ export function initHeroWebGL(prefersReducedMotion) {
     uniforms.uMouse.value.y += (targetMouse.y - uniforms.uMouse.value.y) * 0.06
 
     updateScroll()
-    renderer.render(scene, camera)
+    post.setGrainTime(uniforms.uTime.value)
+    post.composer.render()
   }
 
   function start() {
@@ -255,6 +264,7 @@ export function initHeroWebGL(prefersReducedMotion) {
     destroy() {
       stop()
       ro.disconnect()
+      post.dispose()
       geo.dispose()
       material.dispose()
       renderer.dispose()

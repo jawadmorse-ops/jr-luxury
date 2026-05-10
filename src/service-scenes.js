@@ -1,11 +1,15 @@
 import * as THREE from 'three'
+import { buildComposer } from './postprocessing.js'
 
 // ── Mini 3D scene for each service card ─────────────────────────────
 function createServiceScene(canvas) {
   const shape = canvas.dataset.shape || 'icosahedron'
   const card  = canvas.closest('.material-card')
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
+  // alpha: false here — we render our own dark backdrop so bloom has
+  // something to bloom against. Without this, the alpha-blend output
+  // washes out and the highlight halation gets clipped.
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
   renderer.setClearColor(0x000000, 0)
   renderer.toneMapping         = THREE.ACESFilmicToneMapping
@@ -62,6 +66,9 @@ function createServiceScene(canvas) {
     card.addEventListener('mouseleave', () => { tRX = 0; tRY = 0 })
   }
 
+  // ── Post-processing — subtle bloom only for these mini scenes ───
+  const post = buildComposer(renderer, scene, camera, { pipeline: 'subtle' })
+
   // ── Resize ──────────────────────────────────────────────
   function resize() {
     const w = canvas.offsetWidth
@@ -70,6 +77,7 @@ function createServiceScene(canvas) {
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
+    post.setSize(w, h)
   }
   resize()
   const ro = new ResizeObserver(resize)
@@ -87,13 +95,15 @@ function createServiceScene(canvas) {
     mesh.rotation.x = time * 0.22 + cRX
     mesh.rotation.y = time * 0.36 + cRY
 
-    renderer.render(scene, camera)
+    post.setGrainTime(time)
+    post.composer.render()
   }
   rafId = requestAnimationFrame(tick)
 
   return function destroy() {
     cancelAnimationFrame(rafId)
     ro.disconnect()
+    post.dispose()
     renderer.dispose()
     geo.dispose()
     mat.dispose()
@@ -124,12 +134,17 @@ function createPhilosophyScene(canvas) {
   ring2.rotation.x = Math.PI / 3
   scene.add(ring2)
 
+  // Bloom-only pipeline — additive thin gold rings turn into proper
+  // glowing filament when the bloom pass fattens the bright pixels.
+  const post = buildComposer(renderer, scene, camera, { pipeline: 'background' })
+
   function resize() {
     const w = canvas.offsetWidth  || canvas.parentElement?.offsetWidth  || 800
     const h = canvas.offsetHeight || canvas.parentElement?.offsetHeight || 600
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
+    post.setSize(w, h)
   }
   resize()
   const ro = new ResizeObserver(resize)
@@ -143,13 +158,14 @@ function createPhilosophyScene(canvas) {
     ring1.rotation.y = time * 0.04
     ring2.rotation.z = -time * 0.05
     ring2.rotation.x = Math.PI / 3 + time * 0.03
-    renderer.render(scene, camera)
+    post.composer.render()
   }
   rafId = requestAnimationFrame(tick)
 
   return function destroy() {
     cancelAnimationFrame(rafId)
     ro.disconnect()
+    post.dispose()
     renderer.dispose()
     geo.dispose()
     geo2.dispose()
