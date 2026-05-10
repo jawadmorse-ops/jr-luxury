@@ -2287,12 +2287,15 @@ body {
    This block addresses each defensively. Desktop unaffected. */
 @media (max-width: 768px), (pointer: coarse) {
 
-  /* Beams: hide entirely on mobile. They're decorative atmosphere
-     and at small viewport they read as garish noise behind text.
-     The hero WebGL canvas already handles "premium feel"; in dark
-     content sections, the plain near-black background is what we
-     want — clean and legible. */
-  #global-beams-canvas { display: none !important; }
+  /* Beams: drop to subtle atmospheric tint on mobile (was visible at
+     full intensity = garish; was display:none = static and dead).
+     0.35 opacity reads as ambient color depth without dominating the
+     6" reading surface — supports the WebGL hero + service scenes
+     instead of competing with them. */
+  #global-beams-canvas {
+    opacity: 0.35 !important;
+    filter: saturate(0.7) blur(2px);
+  }
 
   /* Material cards: drop backdrop-filter (expensive + ugly on iOS),
      use solid dark fill so text reads crisp without any GPU blur */

@@ -300,14 +300,17 @@ export function initServiceScenes(prefersReducedMotion) {
   if (prefersReducedMotion) return
 
   const cleanups = []
-  const isMobile = window.matchMedia('(max-width: 768px)').matches
 
-  // Service card mini-scenes (skip on mobile for perf)
-  if (!isMobile) {
-    document.querySelectorAll('.service-canvas').forEach(canvas => {
-      cleanups.push(createServiceScene(canvas))
-    })
-  }
+  // Service card mini-scenes — render on every device including
+  // mobile. The 3D structures ARE the signature of this section
+  // (icosahedron, torusknot, octahedron with displacement + bloom).
+  // Skipping them on mobile leaves a static row of text cards with
+  // no premium feel. Modern phones handle three small WebGL contexts
+  // fine; the DPR cap at 2 plus the shaders' tiny canvas size keeps
+  // GPU cost in check.
+  document.querySelectorAll('.service-canvas').forEach(canvas => {
+    cleanups.push(createServiceScene(canvas))
+  })
 
   // Philosophy ambient ring (very cheap, runs on all devices)
   const philCanvas = document.querySelector('.philosophy-canvas')
