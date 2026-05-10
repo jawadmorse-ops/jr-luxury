@@ -2140,9 +2140,14 @@ body {
 }
 
 
-/* Section content above beams */
+/* Section content above beams.
+   IMPORTANT: .philosophy-canvas is NOT in this list anymore. It must
+   stay position: absolute (decorative backdrop behind the content) —
+   the previous rule was forcing it to position: relative which made
+   the canvas take its full 100% height in document flow, pushing the
+   actual philosophy content ~2900px down the page. That was the
+   "huge gap" between hero and content the user kept seeing. */
 #philosophy .philosophy-inner,
-#philosophy .philosophy-canvas,
 #materials .container,
 #atelier .container,
 #testimonials .testimonial-inner,
