@@ -142,11 +142,21 @@ const PRESETS = {
   },
 }
 
-export function buildComposer(renderer, scene, camera, { pipeline = 'hero' } = {}) {
+export function buildComposer(renderer, scene, camera, { pipeline = 'hero', samples = 4 } = {}) {
   const cfg = PRESETS[pipeline] ?? PRESETS.hero
   const size = renderer.getSize(new THREE.Vector2())
 
-  const composer = new EffectComposer(renderer)
+  // EffectComposer renders to offscreen render targets — the WebGL
+  // renderer's antialias flag doesn't help inside the composer pipeline.
+  // We give the composer a multisampled render target (MSAA) so
+  // geometry edges stay smooth even with the bloom/chroma chain.
+  // samples: 4 is a good quality/perf balance; 0 = no AA (jagged),
+  // 8 = nicer but more expensive.
+  const renderTarget = new THREE.WebGLRenderTarget(size.x, size.y, {
+    samples,
+    type: THREE.HalfFloatType,  // higher precision so bloom doesn't band
+  })
+  const composer = new EffectComposer(renderer, renderTarget)
   composer.setSize(size.x, size.y)
   composer.setPixelRatio(renderer.getPixelRatio())
 

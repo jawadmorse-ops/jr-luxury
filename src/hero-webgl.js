@@ -200,8 +200,10 @@ export function initHeroWebGL(prefersReducedMotion) {
   // ── Post-processing ─────────────────────────────────────
   // Hero gets the full pipeline: bloom + chromatic aberration + film
   // grain + tone-mapped output. This is where the cinematic gold pulses
-  // turn into actual halation.
-  const post = buildComposer(renderer, scene, camera, { pipeline: 'hero' })
+  // turn into actual halation. samples: 4 for MSAA inside the composer
+  // (essential — the renderer's antialias flag doesn't apply once we
+  // render to offscreen targets in the composer chain).
+  const post = buildComposer(renderer, scene, camera, { pipeline: 'hero', samples: 4 })
 
   // ── Resize ──────────────────────────────────────────────
   function resize() {

@@ -121,11 +121,13 @@ function createServiceScene(canvas) {
   const shape = canvas.dataset.shape || 'icosahedron'
   const card  = canvas.closest('.material-card')
 
-  // alpha: false here — we render our own dark backdrop so bloom has
-  // something to bloom against. Without this, the alpha-blend output
-  // washes out and the highlight halation gets clipped.
+  // antialias on the renderer doesn't help once we route through
+  // EffectComposer's offscreen targets — instead we ask the composer
+  // for a 4x multisampled render target (see buildComposer below).
+  // Bumped DPR cap 1.5 → 2.0 to match the hero — high-DPI screens
+  // were rendering these mini-scenes at half-resolution.
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.setClearColor(0x000000, 0)
   renderer.toneMapping         = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.3
@@ -183,8 +185,8 @@ function createServiceScene(canvas) {
     card.addEventListener('mouseleave', () => { tRX = 0; tRY = 0 })
   }
 
-  // ── Post-processing — subtle bloom only for these mini scenes ───
-  const post = buildComposer(renderer, scene, camera, { pipeline: 'subtle' })
+  // ── Post-processing — subtle bloom + 4x MSAA for clean edges
+  const post = buildComposer(renderer, scene, camera, { pipeline: 'subtle', samples: 4 })
 
   // ── Resize ──────────────────────────────────────────────
   function resize() {
@@ -254,7 +256,9 @@ function createPhilosophyScene(canvas) {
 
   // Bloom-only pipeline — additive thin gold rings turn into proper
   // glowing filament when the bloom pass fattens the bright pixels.
-  const post = buildComposer(renderer, scene, camera, { pipeline: 'background' })
+  // 4x MSAA so the thin (radius 0.012) torus geometry doesn't show
+  // staircase aliasing at retina resolutions.
+  const post = buildComposer(renderer, scene, camera, { pipeline: 'background', samples: 4 })
 
   function resize() {
     const w = canvas.offsetWidth  || canvas.parentElement?.offsetWidth  || 800
