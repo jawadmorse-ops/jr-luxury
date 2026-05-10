@@ -34,6 +34,7 @@ const FRAGMENT = /* glsl */ `
 
   uniform float uTime;
   uniform float uScroll;
+  uniform float uProgress;   // 0 → top of page, 1 → bottom
   uniform vec2  uResolution;
   varying vec2  vUv;
 
@@ -84,11 +85,26 @@ const FRAGMENT = /* glsl */ `
     float scrollY = uScroll * 0.0009;
 
     // Six rays at varied positions/widths — chosen for organic
-    // feel, not a grid. Hues interleave cyan/gold/rose so palette
-    // never reads monotone.
-    vec3 hueWarm   = vec3(0.79, 0.66, 0.43);   // gold
-    vec3 hueCold   = vec3(0.42, 0.62, 0.78);   // cyan
-    vec3 hueAccent = vec3(0.96, 0.45, 0.55);   // rose
+    // feel, not a grid. Hue triplet biases with uProgress so the
+    // palette walks cool → warm → rose as the visitor descends:
+    //   • Top sections (philosophy / materials): cooler, cyan-led
+    //   • Middle (atelier / testimonials): warm gold dominant
+    //   • Bottom (contact / footer): rose accents emerge
+    vec3 hueWarm = mix(
+      vec3(0.74, 0.62, 0.42),   // dimmer gold up top
+      vec3(0.84, 0.70, 0.46),   // brighter gold lower
+      uProgress
+    );
+    vec3 hueCold = mix(
+      vec3(0.42, 0.66, 0.82),   // saturated cyan up top
+      vec3(0.32, 0.54, 0.72),   // dimmer cyan lower (recedes)
+      uProgress
+    );
+    vec3 hueAccent = mix(
+      vec3(0.86, 0.42, 0.50),   // soft rose up top
+      vec3(1.00, 0.50, 0.58),   // punchy rose lower
+      uProgress
+    );
 
     float r1 = ray(uv, 0.12, 0.10, scrollY);
     float r2 = ray(uv, 0.34, 0.16, scrollY * 1.3);
@@ -155,6 +171,7 @@ export function initBeamsBackground(prefersReducedMotion) {
   const uniforms = {
     uTime:       { value: 0 },
     uScroll:     { value: 0 },
+    uProgress:   { value: 0 },
     uResolution: { value: new THREE.Vector2(1, 1) },
   }
 
@@ -188,6 +205,11 @@ export function initBeamsBackground(prefersReducedMotion) {
     rafId = requestAnimationFrame(tick)
     uniforms.uTime.value = clock.getElapsedTime()
     uniforms.uScroll.value = window.scrollY
+    // Scroll progress 0..1 — drives cool → warm → rose palette walk.
+    // Clamped because some browsers report scrollY past max during
+    // overscroll bounce.
+    const max = document.documentElement.scrollHeight - window.innerHeight
+    uniforms.uProgress.value = Math.max(0, Math.min(1, max > 0 ? window.scrollY / max : 0))
     renderer.render(scene, camera)
 
     // Visibility check inline with render — runs every frame, works
