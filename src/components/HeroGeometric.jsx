@@ -34,7 +34,10 @@ export function HeroGeometric({
     <div
       style={{
         position: "relative",
-        minHeight: "100vh",
+        // Fill the parent #hero exactly (which is now 100svh) instead
+        // of expanding past it — the old minHeight:100vh was the cause
+        // of the gap visible after the headline scroll-out
+        height: "100%",
         width: "100%",
         display: "flex",
         alignItems: "center",

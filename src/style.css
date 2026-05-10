@@ -474,7 +474,11 @@ section { padding: clamp(5rem, 10vw, 9rem) 0; }
 /* ─── Hero ───────────────────────────────────────────── */
 #hero {
   position: relative;
-  min-height: 100vh;
+  /* Fixed viewport height — was min-height: 100vh which let the inner
+     React content push the section to ~1288px when viewport was 966.
+     The 322px overflow read as "blank space" between hero and next
+     section. svh ignores mobile browser chrome bouncing. */
+  height: 100svh;
   overflow: hidden;
   background: #030303;
 }
@@ -488,6 +492,10 @@ section { padding: clamp(5rem, 10vw, 9rem) 0; }
   z-index: 0;
   display: block;
   pointer-events: none;
+  /* Hero JS sets inline opacity 1→0 across 35-75% scroll progress.
+     Tiny transition smooths any sub-frame jitter in the JS easing. */
+  transition: opacity 120ms linear;
+  will-change: opacity;
 }
 
 /* Global GLSL beams — fixed full-viewport canvas behind all content.

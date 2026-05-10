@@ -131,8 +131,11 @@ const FRAGMENT = /* glsl */ `
     float vig = smoothstep(1.5, 0.35, length(uv));
     col *= mix(0.55, 1.0, vig);
 
-    // Subtle film grain so the dark areas don't band on cheap displays
-    float grain = (hash(vUv * uResolution.xy + uTime) - 0.5) * 0.018;
+    // Subtle film grain so the dark areas don't band on cheap displays.
+    // Reduced from 0.018 to 0.008 — was reading as "old TV static"
+    // on high-DPI screens. Combined with the post-processing grain
+    // pass at 0.014 it's now a tasteful texture, not noise.
+    float grain = (hash(vUv * uResolution.xy + uTime) - 0.5) * 0.008;
     col += grain;
 
     gl_FragColor = vec4(col, 1.0);
@@ -151,7 +154,9 @@ export function initHeroWebGL(prefersReducedMotion) {
     alpha: false,
     powerPreference: 'high-performance',
   })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 1.5))
+  // Bumped from 1.5 to 2.0 on desktop — high-DPI screens were showing
+  // visible pixelation in the dark gradient regions
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2))
   renderer.setClearColor(0x030303, 1)
 
   const scene = new THREE.Scene()
@@ -210,14 +215,29 @@ export function initHeroWebGL(prefersReducedMotion) {
   const ro = new ResizeObserver(resize)
   ro.observe(canvas)
 
-  // ── Scroll progress (0 at hero top, 1 at hero exit) ─────
+  // ── Scroll progress (0 at hero top, 1 at hero exit) + canvas
+  //    bridge fade so the next section takes over visually before
+  //    the user reaches the section boundary
+  let lastFade = -1
   function updateScroll() {
     const hero = document.getElementById('hero')
     if (!hero) return
     const rect = hero.getBoundingClientRect()
-    const total = hero.offsetHeight + window.innerHeight
     const traveled = Math.max(0, window.innerHeight - rect.bottom)
-    uniforms.uScroll.value = Math.min(1, traveled / hero.offsetHeight)
+    const progress = Math.min(1, traveled / hero.offsetHeight)
+    uniforms.uScroll.value = progress
+
+    // Bridge fade — hero canvas opacity ramps from 1 to 0 across the
+    // 35-75% scroll window. The global beams fade IN around the same
+    // time (their threshold is 60% of hero), so the visitor never
+    // sees a dead empty WebGL field. Continuity instead of gap.
+    const fade = progress < 0.35 ? 1 :
+                 progress > 0.75 ? 0 :
+                 1 - (progress - 0.35) / 0.4
+    if (Math.abs(fade - lastFade) > 0.005) {
+      canvas.style.opacity = fade.toFixed(3)
+      lastFade = fade
+    }
   }
 
   // ── Render loop ─────────────────────────────────────────

@@ -111,8 +111,12 @@ const PRESETS = {
     bloomStrength:  0.85,
     bloomRadius:    0.8,
     bloomThreshold: 0.32,
-    chromaStrength: 0.0028,
-    grainIntensity: 0.045,
+    // Aggressive grain + chroma was reading as "old-TV pixelation" on
+    // high-DPI screens. Scaled back to a tasteful film texture: the
+    // grain is now a hint, not a layer; chroma is on the edge of
+    // perceptibility (sub-pixel offset for the rich color edges).
+    chromaStrength: 0.0012,
+    grainIntensity: 0.014,
     enableChroma:   true,
     enableGrain:    true,
   },
@@ -122,10 +126,10 @@ const PRESETS = {
     // Higher threshold so only the silhouette rim blooms — keeps the
     // geometry's facets and displacement legible underneath
     bloomThreshold: 0.78,
-    chromaStrength: 0.0014,
-    grainIntensity: 0.022,
+    chromaStrength: 0,
+    grainIntensity: 0,        // service mini-scenes: no grain — too small
     enableChroma:   false,
-    enableGrain:    true,
+    enableGrain:    false,
   },
   background: {
     bloomStrength:  0.7,

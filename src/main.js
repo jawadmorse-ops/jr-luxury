@@ -214,16 +214,18 @@ function initKineticType() {
   // CTAs) scales up slightly, fades, and softens as the user scrolls
   // past. Reads as the camera diving forward through the typography
   // into the WebGL nebula behind it. Scrub-driven so the user has
-  // tactile control over the exit moment.
+  // tactile control over the exit moment. Tightened from 15→85% to
+  // 10→55% so text exits well before the section ends — no dead
+  // air between the empty-text state and the marquee that follows.
   gsap.to('#hero-react-root', {
     scale: 1.08,
     opacity: 0,
-    filter: 'blur(8px)',
+    filter: 'blur(6px)',
     ease: 'none',
     scrollTrigger: {
       trigger: '#hero',
-      start: '15% top',
-      end: '85% top',
+      start: '10% top',
+      end: '55% top',
       scrub: 1,
     },
   })
@@ -350,20 +352,70 @@ function initProductReveal() {
     scrollTrigger: { trigger: '.philosophy-card', start: 'top 80%' },
   })
 
-  // Process steps — stagger slide from left
-  gsap.from('.process-step', {
-    x: -52, opacity: 0,
-    duration: 1, stagger: 0.18, ease: 'expo.out',
-    scrollTrigger: { trigger: '.process-steps', start: 'top 72%' },
+  // Process steps — scroll-scrubbed stagger from left. Each step
+  // travels in as its own row crosses the viewport, so the timing
+  // feels organic, not like a single canned animation
+  gsap.utils.toArray('.process-step').forEach((step, i) => {
+    gsap.fromTo(step,
+      { x: -80, opacity: 0 },
+      {
+        x: 0, opacity: 1, ease: 'none',
+        scrollTrigger: {
+          trigger: step,
+          start: 'top 92%',
+          end: 'top 65%',
+          scrub: 1,
+        },
+      }
+    )
   })
 
-  // Process connectors scale in
+  // Process connectors scale in (vertical pipes between steps)
   gsap.from('.process-connector', {
     scaleY: 0, opacity: 0,
     duration: 0.6, stagger: 0.18, ease: 'power2.out',
     transformOrigin: 'top',
     scrollTrigger: { trigger: '.process-steps', start: 'top 72%' },
   })
+
+  // ── Service cards — scroll-driven parallax floats ───────
+  // Each card drifts at a different rate as it scrolls through
+  // the viewport. Reads as depth without 3D — adds life to what
+  // would otherwise be a static row of cards
+  gsap.utils.toArray('.material-card').forEach((card, i) => {
+    const offset = [-30, 0, -30][i] ?? 0
+    gsap.fromTo(card,
+      { y: 0 },
+      {
+        y: offset, ease: 'none',
+        scrollTrigger: {
+          trigger: '.materials-grid',
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1.4,
+        },
+      }
+    )
+  })
+
+  // ── Section eyebrow + h2 character-style reveal ─────────
+  // For the most prominent headline ("Every service. Pixel perfect.")
+  // we layer an extra opacity/letter-spacing scrub on top of the
+  // existing yPercent reveal — the type "tightens" as it enters
+  gsap.fromTo('.section-header h2',
+    { letterSpacing: '0.06em', filter: 'blur(6px)' },
+    {
+      letterSpacing: '-0.025em',
+      filter: 'blur(0px)',
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.section-header h2',
+        start: 'top 90%',
+        end: 'top 50%',
+        scrub: 1,
+      },
+    }
+  )
 }
 
 // ─── Private Collection — stagger rotate-in + parallax ─
