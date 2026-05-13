@@ -2,30 +2,22 @@ import * as THREE from 'three'
 import { buildComposer } from './postprocessing.js'
 
 /**
- * Contact section 3D backdrop — concentric pulsing rings emanating
- * outward, like a transmission signal.
+ * Contact section 3D backdrop — a single large gold torus, slowly
+ * rotating in space behind the form.
  *
- * Why this over a static shape:
- *   The previous icosphere was decorative but thematically empty.
- *   Contact is the page's call-to-action — "reach out, get in touch."
- *   Concentric rings expanding outward = signal, transmission, the
- *   *act* of reaching. Visually says what the section is for.
+ * Restraint by design:
+ *   Previous iterations tried multiple expanding rings ("signal" /
+ *   "transmission" metaphor — too literal, too busy) and a displaced
+ *   icosphere (no thematic reason). Neither felt elegant.
  *
- * Construction:
- *   • 5 thin gold torus rings at different radii
- *   • Each ring slowly scales outward on a phase-offset loop —
- *     when one fades at the outer edge, the next is expanding from
- *     the center. Continuous "ping" rhythm.
- *   • Opacity fades with scale so rings dissolve as they expand
- *   • Slow Y rotation on the whole group adds three-dimensionality
- *   • Cursor parallax tilts the rings — they "lean toward" the user
- *   • Bloom makes the thin geometry glow like neon filament
+ *   This is one ring. One slow rotation. One subtle cursor tilt.
+ *   The form is the hero of this section; the geometry is a frame.
+ *
+ * Why a torus and not nothing:
+ *   The user wants 3D presence in every section. A single torus
+ *   provides geometric stability + gives bloom something to halate
+ *   around. The slow rotation feels alive without competing.
  */
-
-const RING_COUNT = 5
-const RING_CYCLE_DURATION = 6.0   // seconds for one full expansion
-const MAX_SCALE = 4.2              // outermost scale before reset
-const MIN_SCALE = 0.4
 
 export function initContactScene(prefersReducedMotion) {
   if (prefersReducedMotion) return null
@@ -48,41 +40,32 @@ export function initContactScene(prefersReducedMotion) {
   renderer.setClearColor(0x000000, 0)
 
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100)
-  camera.position.z = 6
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100)
+  camera.position.z = 7
 
-  // Parent group so we can rotate the whole transmission as one unit
-  const group = new THREE.Group()
-  scene.add(group)
-
-  // ── Build the rings ─────────────────────────────────────
-  // Thin torus geometry (radius 1, tube 0.018 — barely visible
-  // outline, the bloom does the heavy lifting). Slightly tilted
-  // backward so they read as receding into depth.
-  const ringGeo = new THREE.TorusGeometry(1, 0.018, 8, 180)
-  const baseMat = new THREE.MeshBasicMaterial({
+  // One ring. Generous radius, thin tube. The thin geometry barely
+  // exists as solid mesh — the bloom is what makes it luminous.
+  const geo = new THREE.TorusGeometry(2.4, 0.012, 8, 240)
+  const mat = new THREE.MeshBasicMaterial({
     color: 0xC9A96E,
     transparent: true,
-    opacity: 0.9,
+    opacity: 0.85,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   })
+  const ring = new THREE.Mesh(geo, mat)
+  // Tilt the ring backward + sideways so it reads as occupying 3D
+  // depth, not just a flat circle on the page
+  ring.rotation.x = -0.5
+  ring.rotation.z = 0.15
+  scene.add(ring)
 
-  const rings = []
-  for (let i = 0; i < RING_COUNT; i++) {
-    const mat = baseMat.clone()
-    const ring = new THREE.Mesh(ringGeo, mat)
-    ring.rotation.x = -0.35  // subtle backward tilt — depth cue
-    // Phase offset evenly across the cycle so rings cascade
-    ring.userData.phase = (i / RING_COUNT) * RING_CYCLE_DURATION
-    rings.push(ring)
-    group.add(ring)
-  }
-
-  // ── Post-processing: bloom only, generous ───────────────
+  // Post: bloom only (background preset). The whole point is to let
+  // the thin geometry glow.
   const post = buildComposer(renderer, scene, camera, { pipeline: 'background', samples: 4 })
 
-  // ── Cursor parallax ─────────────────────────────────────
+  // Cursor parallax — very subtle, just enough that you notice the
+  // ring "responding" to you if you look closely
   const targetCursor = { x: 0.5, y: 0.5 }
   if (!window.matchMedia('(pointer: coarse)').matches) {
     section.addEventListener('mousemove', (e) => {
@@ -93,7 +76,6 @@ export function initContactScene(prefersReducedMotion) {
   }
   const cursor = { x: 0.5, y: 0.5 }
 
-  // ── Resize ──────────────────────────────────────────────
   function resize() {
     const w = section.offsetWidth || window.innerWidth
     const h = section.offsetHeight || window.innerHeight
@@ -109,7 +91,6 @@ export function initContactScene(prefersReducedMotion) {
   const ro = new ResizeObserver(resize)
   ro.observe(section)
 
-  // ── Render loop ─────────────────────────────────────────
   let rafId = null
   let active = true
   const clock = new THREE.Clock()
@@ -119,26 +100,12 @@ export function initContactScene(prefersReducedMotion) {
     rafId = requestAnimationFrame(tick)
     const t = clock.getElapsedTime()
 
-    // Cursor lerp
-    cursor.x += (targetCursor.x - cursor.x) * 0.05
-    cursor.y += (targetCursor.y - cursor.y) * 0.05
+    cursor.x += (targetCursor.x - cursor.x) * 0.04
+    cursor.y += (targetCursor.y - cursor.y) * 0.04
 
-    // Group: slow Y rotation + cursor parallax
-    group.rotation.y = t * 0.08 + (cursor.x - 0.5) * 0.5
-    group.rotation.x = -0.1 + (cursor.y - 0.5) * 0.25
-
-    // Each ring: scale outward on its own phase, fade with scale
-    rings.forEach((ring) => {
-      const localT = ((t + ring.userData.phase) % RING_CYCLE_DURATION) / RING_CYCLE_DURATION
-      // Eased outward — fast start, slow end, mimics how a signal
-      // wave attenuates
-      const eased = 1.0 - Math.pow(1.0 - localT, 2.5)
-      const scale = MIN_SCALE + eased * (MAX_SCALE - MIN_SCALE)
-      ring.scale.setScalar(scale)
-      // Fade out as ring approaches max scale (the "dissipation")
-      const fade = 1.0 - Math.pow(localT, 1.8)
-      ring.material.opacity = 0.9 * fade
-    })
+    // Slow continuous rotation on Y, small cursor parallax on X
+    ring.rotation.y = t * 0.06
+    ring.rotation.x = -0.5 + (cursor.y - 0.5) * 0.15
 
     post.composer.render()
   }
@@ -160,9 +127,8 @@ export function initContactScene(prefersReducedMotion) {
       stop()
       ro.disconnect()
       canvas.remove()
-      ringGeo.dispose()
-      baseMat.dispose()
-      rings.forEach(r => r.material.dispose())
+      geo.dispose()
+      mat.dispose()
       post.dispose()
       renderer.dispose()
     },
