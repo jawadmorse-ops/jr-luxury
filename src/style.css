@@ -531,16 +531,10 @@ section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
   pointer-events: none;
 }
 
-/* Contact section 3D backdrop — wireframe icosphere behind form */
-.contact-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  display: block;
-  pointer-events: none;
-}
+/* Contact section: intentionally no canvas backdrop. The form is
+   the moment; the global beams provide enough ambient atmosphere.
+   .contact-canvas CSS removed — was a leftover after the
+   contact-scene.js module was retired. */
 
 #hero-react-root {
   position: relative;

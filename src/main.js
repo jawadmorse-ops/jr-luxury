@@ -6,7 +6,6 @@ import { initServiceScenes }    from './service-scenes.js'
 import { initBeamsBackground }  from './beams-background.js'
 import { initHeroWebGL }        from './hero-webgl.js'
 import { initAtelierScene }     from './atelier-scene.js'
-import { initContactScene }     from './contact-scene.js'
 import { initSectionEnterFX }   from './section-fx.js'
 import { createElement }  from 'react'
 import { createRoot }     from 'react-dom/client'
@@ -83,7 +82,9 @@ window.addEventListener('DOMContentLoaded', () => {
   initPreloader()
   initServiceScenes(prefersReducedMotion)
   initAtelierScene(prefersReducedMotion)
-  initContactScene(prefersReducedMotion)
+  // Contact intentionally has no 3D backdrop — the form is the
+  // moment of this section. The global beams provide ambient
+  // atmosphere; adding more competed with the form's readability.
   initSectionEnterFX(prefersReducedMotion)
   initCursor()
   initScrollProgress()
