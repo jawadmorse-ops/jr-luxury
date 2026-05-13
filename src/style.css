@@ -520,6 +520,28 @@ section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
   transition: opacity 700ms ease-out;
 }
 
+/* Atelier section 3D backdrop — particle constellation behind process steps */
+.atelier-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+}
+
+/* Contact section 3D backdrop — wireframe icosphere behind form */
+.contact-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+}
+
 #hero-react-root {
   position: relative;
   z-index: 1;

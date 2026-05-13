@@ -5,6 +5,9 @@ import Lenis from 'lenis'
 import { initServiceScenes }    from './service-scenes.js'
 import { initBeamsBackground }  from './beams-background.js'
 import { initHeroWebGL }        from './hero-webgl.js'
+import { initAtelierScene }     from './atelier-scene.js'
+import { initContactScene }     from './contact-scene.js'
+import { initSectionEnterFX }   from './section-fx.js'
 import { createElement }  from 'react'
 import { createRoot }     from 'react-dom/client'
 import { HeroGeometric }  from './components/HeroGeometric.jsx'
@@ -79,6 +82,9 @@ window.addEventListener('DOMContentLoaded', () => {
   initResizeRefresh()
   initPreloader()
   initServiceScenes(prefersReducedMotion)
+  initAtelierScene(prefersReducedMotion)
+  initContactScene(prefersReducedMotion)
+  initSectionEnterFX(prefersReducedMotion)
   initCursor()
   initScrollProgress()
   initHeroParticles()
