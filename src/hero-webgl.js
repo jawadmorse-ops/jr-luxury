@@ -168,12 +168,30 @@ export function initHeroWebGL(prefersReducedMotion) {
   if (!canvas) return null
 
   const isMobile = window.matchMedia('(max-width: 768px)').matches
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: false,
-    alpha: false,
-    powerPreference: 'high-performance',
-  })
+  // Try/catch around WebGL init — Brave's "Strict" fingerprinting shield,
+  // hardware-acceleration-disabled browsers, and ancient devices can
+  // all cause WebGLRenderer construction to throw or return a broken
+  // context. If init fails, hide the canvas so the CSS gradient
+  // fallback on #hero shows through cleanly instead of a black box
+  // sitting on top of it.
+  let renderer
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: false,
+      alpha: false,
+      powerPreference: 'high-performance',
+      failIfMajorPerformanceCaveat: false,
+    })
+    // Some Brave configs return a context that exists but reports an
+    // immediately-lost state — check and bail if so
+    if (renderer.getContext()?.isContextLost?.()) {
+      throw new Error('WebGL context is lost on init')
+    }
+  } catch (err) {
+    canvas.style.display = 'none'
+    return null
+  }
   // Bumped from 1.5 to 2.0 on desktop — high-DPI screens were showing
   // visible pixelation in the dark gradient regions
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2))

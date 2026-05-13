@@ -483,7 +483,16 @@ section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
      section. svh ignores mobile browser chrome bouncing. */
   height: 100svh;
   overflow: hidden;
-  background: #030303;
+  /* Fallback gradient — approximates the WebGL nebula's palette so
+     that when WebGL is blocked (Brave's "Strict" fingerprinting shield,
+     ancient browsers, hardware accel disabled) the hero still feels
+     intentional instead of an empty black void. The hero canvas sits
+     on top and covers this when rendering normally. */
+  background:
+    radial-gradient(ellipse 80% 60% at 60% 45%, rgba(201, 169, 110, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 55% at 25% 70%, rgba(244, 63, 94, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 45% at 80% 25%, rgba(99, 102, 241, 0.09) 0%, transparent 60%),
+    #030303;
 }
 
 /* WebGL canvas — fragment-shader nebula behind everything in the hero */
@@ -529,6 +538,14 @@ section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
   z-index: 0;
   display: block;
   pointer-events: none;
+}
+
+/* Atelier fallback — soft gold smudge so when WebGL is blocked the
+   process section doesn't read as a wall of black */
+#atelier {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(201, 169, 110, 0.06) 0%, transparent 60%),
+    transparent;
 }
 
 /* Contact section: intentionally no canvas backdrop. The form is
