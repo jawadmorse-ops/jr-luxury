@@ -237,31 +237,18 @@ function initKineticType() {
     },
   })
 
-  // Section h2 kinetic reveal — wipe up from overflow:hidden parent.
-  // Scrub-driven (not once-fire) so the heading animates throughout
-  // its ScrollTrigger range instead of snapping once on enter. The
-  // result feels alive while the user scrolls — Active Theory
-  // signature for editorial typography.
+  // (Section h2 kinetic reveal moved out of here — now handled by
+  // initSectionEnterFX in section-fx.js with a character-by-character
+  // rise-from-baseline stagger. AT signature for editorial typography.
+  // We keep the iteration loop scaffold below for the legacy targets
+  // we still touch with simpler treatments — see below.)
   gsap.utils.toArray([
-    '.section-header h2',
-    '.philosophy-text h2',
-    '.contact-text h2',
     '.testimonial-inner blockquote p',
   ]).forEach(el => {
-    gsap.fromTo(el,
-      { yPercent: 60, opacity: 0 },
-      {
-        yPercent: 0,
-        opacity: 1,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 95%',
-          end: 'top 55%',
-          scrub: 1.2,
-        },
-      }
-    )
+    // The testimonial quote body is handled in section-fx with a
+    // word-stagger; we no-op here intentionally to preserve the
+    // iteration shape in case future targets are added.
+    return el
   })
 
   // Section eyebrows slide in from left
