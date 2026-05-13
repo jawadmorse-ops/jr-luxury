@@ -2,71 +2,30 @@ import * as THREE from 'three'
 import { buildComposer } from './postprocessing.js'
 
 /**
- * Contact section 3D backdrop — a large, slowly-rotating wireframe
- * sphere with displaced surface. Sits behind the contact form, far
- * enough back that it reads as decorative depth, close enough that
- * it gives the form section a sense of *gravity* — there's something
- * substantial behind the call-to-action.
+ * Contact section 3D backdrop — concentric pulsing rings emanating
+ * outward, like a transmission signal.
  *
- * Why a sphere here (vs. the constellation in atelier):
- *   • Atelier is a journey (process) — constellation = network of
- *     connected ideas. Sphere wouldn't fit that.
- *   • Contact is the destination — the page's gravitational pull.
- *     A single substantial form anchors that emotionally.
+ * Why this over a static shape:
+ *   The previous icosphere was decorative but thematically empty.
+ *   Contact is the page's call-to-action — "reach out, get in touch."
+ *   Concentric rings expanding outward = signal, transmission, the
+ *   *act* of reaching. Visually says what the section is for.
  *
- * Visual notes:
- *   • Wireframe icosphere, subdivided, vertex-displaced by noise
- *   • Slow Y rotation + scroll-driven X rotation
- *   • Gold filament edges + bloom = elegant glowing skeleton
- *   • Cursor parallax slides it gently
+ * Construction:
+ *   • 5 thin gold torus rings at different radii
+ *   • Each ring slowly scales outward on a phase-offset loop —
+ *     when one fades at the outer edge, the next is expanding from
+ *     the center. Continuous "ping" rhythm.
+ *   • Opacity fades with scale so rings dissolve as they expand
+ *   • Slow Y rotation on the whole group adds three-dimensionality
+ *   • Cursor parallax tilts the rings — they "lean toward" the user
+ *   • Bloom makes the thin geometry glow like neon filament
  */
 
-const VERTEX = /* glsl */ `
-  uniform float uTime;
-  varying vec3 vPosition;
-  varying float vDisp;
-
-  float hash3(vec3 p) {
-    return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
-  }
-  float noise3(vec3 p) {
-    vec3 i = floor(p);
-    vec3 f = fract(p);
-    vec3 u = f * f * (3.0 - 2.0 * f);
-    return mix(
-      mix(mix(hash3(i + vec3(0,0,0)), hash3(i + vec3(1,0,0)), u.x),
-          mix(hash3(i + vec3(0,1,0)), hash3(i + vec3(1,1,0)), u.x), u.y),
-      mix(mix(hash3(i + vec3(0,0,1)), hash3(i + vec3(1,0,1)), u.x),
-          mix(hash3(i + vec3(0,1,1)), hash3(i + vec3(1,1,1)), u.x), u.y),
-      u.z
-    );
-  }
-
-  void main() {
-    vec3 pos = position;
-    float t = uTime * 0.25;
-    float n = noise3(pos * 1.4 + vec3(t, t * 0.7, -t * 0.5));
-    vDisp = n;
-    pos += normal * n * 0.12;
-    vPosition = pos;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-  }
-`
-
-const FRAGMENT = /* glsl */ `
-  precision highp float;
-  uniform float uTime;
-  varying vec3 vPosition;
-  varying float vDisp;
-
-  void main() {
-    // Warm gold base, slight color drift with displacement
-    vec3 base = mix(vec3(0.55, 0.42, 0.20), vec3(0.85, 0.69, 0.40), vDisp + 0.4);
-    // Subtle slow pulse
-    float pulse = 0.85 + 0.15 * sin(uTime * 0.6 + vDisp * 3.0);
-    gl_FragColor = vec4(base * pulse, 1.0);
-  }
-`
+const RING_COUNT = 5
+const RING_CYCLE_DURATION = 6.0   // seconds for one full expansion
+const MAX_SCALE = 4.2              // outermost scale before reset
+const MIN_SCALE = 0.4
 
 export function initContactScene(prefersReducedMotion) {
   if (prefersReducedMotion) return null
@@ -79,7 +38,6 @@ export function initContactScene(prefersReducedMotion) {
   canvas.setAttribute('aria-hidden', 'true')
   section.insertBefore(canvas, section.firstChild)
 
-  const isMobile = window.matchMedia('(max-width: 768px)').matches
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: false,
@@ -90,47 +48,39 @@ export function initContactScene(prefersReducedMotion) {
   renderer.setClearColor(0x000000, 0)
 
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100)
-  camera.position.z = 5
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100)
+  camera.position.z = 6
 
-  // Wireframe icosphere — detail 4 for smooth subdivision, vertex
-  // displaced in the shader so it pulses like something alive
-  const geo = new THREE.IcosahedronGeometry(1.6, 4)
-  const mat = new THREE.ShaderMaterial({
-    vertexShader: VERTEX,
-    fragmentShader: FRAGMENT,
-    uniforms: { uTime: { value: 0 } },
-    wireframe: true,
-    transparent: true,
-  })
-  const mesh = new THREE.Mesh(geo, mat)
-  scene.add(mesh)
+  // Parent group so we can rotate the whole transmission as one unit
+  const group = new THREE.Group()
+  scene.add(group)
 
-  // Inner solid icosphere — same geometry but solid (gives the
-  // wireframe something to silhouette against and adds bloom-able
-  // body)
-  const innerMat = new THREE.ShaderMaterial({
-    vertexShader: VERTEX,
-    fragmentShader: /* glsl */ `
-      precision highp float;
-      varying float vDisp;
-      void main() {
-        // Very dark fill, just enough to give the wireframe edges
-        // a body. The bloom does the rest.
-        vec3 col = vec3(0.08, 0.06, 0.04) * (vDisp + 0.4);
-        gl_FragColor = vec4(col, 0.6);
-      }
-    `,
-    uniforms: { uTime: mat.uniforms.uTime },  // share time uniform
+  // ── Build the rings ─────────────────────────────────────
+  // Thin torus geometry (radius 1, tube 0.018 — barely visible
+  // outline, the bloom does the heavy lifting). Slightly tilted
+  // backward so they read as receding into depth.
+  const ringGeo = new THREE.TorusGeometry(1, 0.018, 8, 180)
+  const baseMat = new THREE.MeshBasicMaterial({
+    color: 0xC9A96E,
     transparent: true,
+    opacity: 0.9,
+    blending: THREE.AdditiveBlending,
     depthWrite: false,
   })
-  const innerMesh = new THREE.Mesh(geo, innerMat)
-  innerMesh.scale.setScalar(0.98)
-  scene.add(innerMesh)
 
-  // ── Post-processing ─────────────────────────────────────
-  const post = buildComposer(renderer, scene, camera, { pipeline: 'subtle', samples: 4 })
+  const rings = []
+  for (let i = 0; i < RING_COUNT; i++) {
+    const mat = baseMat.clone()
+    const ring = new THREE.Mesh(ringGeo, mat)
+    ring.rotation.x = -0.35  // subtle backward tilt — depth cue
+    // Phase offset evenly across the cycle so rings cascade
+    ring.userData.phase = (i / RING_COUNT) * RING_CYCLE_DURATION
+    rings.push(ring)
+    group.add(ring)
+  }
+
+  // ── Post-processing: bloom only, generous ───────────────
+  const post = buildComposer(renderer, scene, camera, { pipeline: 'background', samples: 4 })
 
   // ── Cursor parallax ─────────────────────────────────────
   const targetCursor = { x: 0.5, y: 0.5 }
@@ -168,25 +118,27 @@ export function initContactScene(prefersReducedMotion) {
     if (!active) return
     rafId = requestAnimationFrame(tick)
     const t = clock.getElapsedTime()
-    mat.uniforms.uTime.value = t
 
-    // Lerp cursor for weight
+    // Cursor lerp
     cursor.x += (targetCursor.x - cursor.x) * 0.05
     cursor.y += (targetCursor.y - cursor.y) * 0.05
 
-    // Slow continuous rotation + cursor parallax tilt
-    mesh.rotation.y = t * 0.18 + (cursor.x - 0.5) * 0.4
-    mesh.rotation.x = (cursor.y - 0.5) * 0.3
-    innerMesh.rotation.copy(mesh.rotation)
+    // Group: slow Y rotation + cursor parallax
+    group.rotation.y = t * 0.08 + (cursor.x - 0.5) * 0.5
+    group.rotation.x = -0.1 + (cursor.y - 0.5) * 0.25
 
-    // Scroll-driven scale — sphere grows slightly as section enters
-    const rect = section.getBoundingClientRect()
-    const total = section.offsetHeight + window.innerHeight
-    const traveled = Math.max(0, window.innerHeight - rect.top)
-    const progress = Math.min(1, Math.max(0, traveled / total))
-    const scale = 0.85 + progress * 0.35
-    mesh.scale.setScalar(scale)
-    innerMesh.scale.setScalar(scale * 0.98)
+    // Each ring: scale outward on its own phase, fade with scale
+    rings.forEach((ring) => {
+      const localT = ((t + ring.userData.phase) % RING_CYCLE_DURATION) / RING_CYCLE_DURATION
+      // Eased outward — fast start, slow end, mimics how a signal
+      // wave attenuates
+      const eased = 1.0 - Math.pow(1.0 - localT, 2.5)
+      const scale = MIN_SCALE + eased * (MAX_SCALE - MIN_SCALE)
+      ring.scale.setScalar(scale)
+      // Fade out as ring approaches max scale (the "dissipation")
+      const fade = 1.0 - Math.pow(localT, 1.8)
+      ring.material.opacity = 0.9 * fade
+    })
 
     post.composer.render()
   }
@@ -208,9 +160,9 @@ export function initContactScene(prefersReducedMotion) {
       stop()
       ro.disconnect()
       canvas.remove()
-      geo.dispose()
-      mat.dispose()
-      innerMat.dispose()
+      ringGeo.dispose()
+      baseMat.dispose()
+      rings.forEach(r => r.material.dispose())
       post.dispose()
       renderer.dispose()
     },

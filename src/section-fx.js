@@ -2,25 +2,27 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 /**
- * Section enter effects — each major section's inner wrapper gets a
- * cinematic scrub reveal as it enters the viewport.
+ * Section enter/exit FX — every major section now has a full
+ * cinematic lifecycle:
  *
- * Why target wrappers, not sections:
- *   The section element itself contains its WebGL backdrop canvas
- *   (atelier-canvas, contact-canvas, philosophy-canvas, etc.) which
- *   needs to remain visible at all times — animating the section would
- *   blink the backdrop in/out unpleasantly.
+ *   ENTER (0 → 25% of timeline):
+ *     y: 70 → 0,  opacity: 0.6 → 1,  filter: blur(12px) → blur(0)
  *
- *   The inner wrappers (.container, .philosophy-inner, .testimonial-inner)
- *   hold the text content — animating those gives the cinematic reveal
- *   feel without touching the backdrops.
+ *   HOLD (25 → 70%):
+ *     stays clean, content readable
  *
- *   We also use opacity 0.65 → 1 (not 0 → 1) so any .reveal children
- *   that snap-fire during the scrub don't jarringly blink against an
- *   invisible parent.
+ *   EXIT (70 → 100%):
+ *     y: 0 → -70,  opacity: 1 → 0.4,  filter: blur(0) → blur(8px)
+ *     scale slightly down 1 → 0.95 — feels like the section is
+ *     receding into depth as user scrolls past, matching the hero exit
  *
- * Marquee strip: clip-path reveal — feels right for a horizontal
- * text strip (mask wipe matches its scrolling-text nature).
+ * Timeline range: trigger 'top bottom' → 'bottom top' (the entire
+ * span where the section is visible). With scrub: 1.2 the user has
+ * tactile control over each phase.
+ *
+ * Targets WRAPPERS not sections — section backdrops (atelier-canvas,
+ * contact-canvas, etc.) stay visible at all times. Only the text
+ * content breathes in/out.
  */
 export function initSectionEnterFX(prefersReducedMotion) {
   if (prefersReducedMotion) return
@@ -36,22 +38,39 @@ export function initSectionEnterFX(prefersReducedMotion) {
   wrappers.forEach(selector => {
     const el = document.querySelector(selector)
     if (!el) return
-    gsap.fromTo(el,
-      { y: 60, opacity: 0.65, filter: 'blur(8px)' },
-      {
-        y: 0, opacity: 1, filter: 'blur(0px)',
-        ease: 'none',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 95%',
-          end: 'top 55%',
-          scrub: 1.4,
-        },
-      }
-    )
+
+    // Pre-set the starting state so the element doesn't flash at full
+    // opacity for a frame before the timeline takes over
+    gsap.set(el, { y: 70, opacity: 0.6, filter: 'blur(12px)', scale: 0.96 })
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: el,
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: 1.2,
+      },
+    })
+
+    // Enter phase (first 25% of scroll-through)
+    tl.to(el, {
+      y: 0, opacity: 1, filter: 'blur(0px)', scale: 1,
+      ease: 'none', duration: 0.25,
+    })
+    // Hold phase (middle 45%) — clean and readable
+    .to(el, {
+      y: 0, opacity: 1, filter: 'blur(0px)', scale: 1,
+      ease: 'none', duration: 0.45,
+    })
+    // Exit phase (last 30%) — receding into depth, matches hero exit feel
+    .to(el, {
+      y: -70, opacity: 0.4, filter: 'blur(8px)', scale: 0.96,
+      ease: 'none', duration: 0.30,
+    })
   })
 
-  // Marquee strip — clip-path reveal sweeps left → right as it enters
+  // Marquee — clip-path mask wipe on enter only (no exit; it's a short
+  // strip and a wipe-out on exit looks weird mid-scroll)
   const marquee = document.querySelector('.marquee-wrapper')
   if (marquee) {
     gsap.fromTo(marquee,
@@ -70,32 +89,33 @@ export function initSectionEnterFX(prefersReducedMotion) {
     )
   }
 
-  // Testimonial quote mark — scroll-driven scale pulse on top of the
-  // existing snap reveal. Adds presence to the otherwise small SVG.
+  // Testimonial quote mark — scrub-scales up + rotates into place
+  // alongside the section's content reveal
   const quote = document.querySelector('.quote-mark')
   if (quote) {
     gsap.fromTo(quote,
-      { scale: 0.4, rotate: -8 },
+      { scale: 0.4, rotate: -10, opacity: 0 },
       {
-        scale: 1, rotate: 0,
+        scale: 1, rotate: 0, opacity: 0.6,
         ease: 'none',
         scrollTrigger: {
           trigger: '#testimonials',
-          start: 'top 88%',
-          end: 'top 35%',
+          start: 'top 85%',
+          end: 'top 30%',
           scrub: 1.2,
         },
       }
     )
   }
 
-  // Footer — gentle scrub-fade as user reaches the bottom of the page
+  // Footer — softer treatment than mid-page sections. It IS the end
+  // of the page; should fade in and stay.
   const footer = document.getElementById('footer')
   if (footer) {
     gsap.fromTo(footer,
-      { opacity: 0.5 },
+      { opacity: 0.4, y: 30 },
       {
-        opacity: 1,
+        opacity: 1, y: 0,
         ease: 'none',
         scrollTrigger: {
           trigger: footer,
