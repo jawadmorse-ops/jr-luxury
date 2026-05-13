@@ -121,12 +121,23 @@ function createServiceScene(canvas) {
   const shape = canvas.dataset.shape || 'icosahedron'
   const card  = canvas.closest('.material-card')
 
-  // antialias on the renderer doesn't help once we route through
-  // EffectComposer's offscreen targets — instead we ask the composer
-  // for a 4x multisampled render target (see buildComposer below).
-  // Bumped DPR cap 1.5 → 2.0 to match the hero — high-DPI screens
-  // were rendering these mini-scenes at half-resolution.
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true })
+  // Try/catch around WebGL init — Brave's strict fingerprinting
+  // shield + low-end devices can fail context creation. If it does,
+  // hide the canvas so the section's CSS fallback gradient shows
+  // cleanly instead of a black opaque box.
+  let renderer
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas, antialias: false, alpha: true,
+      failIfMajorPerformanceCaveat: false,
+    })
+    if (renderer.getContext()?.isContextLost?.()) {
+      throw new Error('WebGL context lost on init')
+    }
+  } catch (err) {
+    canvas.style.display = 'none'
+    return null
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.setClearColor(0x000000, 0)
   renderer.toneMapping         = THREE.ACESFilmicToneMapping
@@ -233,7 +244,19 @@ function createServiceScene(canvas) {
 
 // ── Large ambient ring behind the Philosophy section ─────────────────
 function createPhilosophyScene(canvas) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true })
+  let renderer
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas, antialias: false, alpha: true,
+      failIfMajorPerformanceCaveat: false,
+    })
+    if (renderer.getContext()?.isContextLost?.()) {
+      throw new Error('WebGL context lost on init')
+    }
+  } catch (err) {
+    canvas.style.display = 'none'
+    return () => {}  // no-op destroy
+  }
   renderer.setPixelRatio(1)
   renderer.setClearColor(0x000000, 0)
 

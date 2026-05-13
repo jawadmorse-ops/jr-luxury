@@ -42,12 +42,25 @@ export function initAtelierScene(prefersReducedMotion) {
   section.insertBefore(canvas, section.firstChild)
 
   const isMobile = window.matchMedia('(max-width: 768px)').matches
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: false,
-    alpha: true,
-    powerPreference: 'high-performance',
-  })
+  // Try/catch around WebGL init — Brave strict shield + ancient GPUs
+  // can fail. Hide the canvas on failure so the #atelier CSS fallback
+  // gradient shows through cleanly.
+  let renderer
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: false,
+      alpha: true,
+      powerPreference: 'high-performance',
+      failIfMajorPerformanceCaveat: false,
+    })
+    if (renderer.getContext()?.isContextLost?.()) {
+      throw new Error('WebGL context lost on init')
+    }
+  } catch (err) {
+    canvas.remove()
+    return null
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.setClearColor(0x000000, 0)
 

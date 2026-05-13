@@ -155,12 +155,26 @@ export function initBeamsBackground(prefersReducedMotion) {
   canvas.setAttribute('aria-hidden', 'true')
   document.body.insertBefore(canvas, document.body.firstChild)
 
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: false,
-    alpha: false,
-    powerPreference: 'high-performance',
-  })
+  // Try/catch around WebGL init — gracefully fail on Brave strict
+  // shield. The beams are decorative; if they can't render, removing
+  // the canvas entirely lets the per-section CSS gradients shine
+  // without competition.
+  let renderer
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: false,
+      alpha: false,
+      powerPreference: 'high-performance',
+      failIfMajorPerformanceCaveat: false,
+    })
+    if (renderer.getContext()?.isContextLost?.()) {
+      throw new Error('WebGL context lost on init')
+    }
+  } catch (err) {
+    canvas.remove()
+    return null
+  }
   const isMobile = window.matchMedia('(max-width: 768px)').matches
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 1.25))
   renderer.setClearColor(0x030303, 1)

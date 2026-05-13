@@ -540,13 +540,9 @@ section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
   pointer-events: none;
 }
 
-/* Atelier fallback — soft gold smudge so when WebGL is blocked the
-   process section doesn't read as a wall of black */
-#atelier {
-  background:
-    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(201, 169, 110, 0.06) 0%, transparent 60%),
-    transparent;
-}
+/* (Atelier fallback consolidated into the per-section gradient
+   block lower in this file — see "Phase 5: GLSL beams visibility +
+   WebGL fallback gradients") */
 
 /* Contact section: intentionally no canvas backdrop. The form is
    the moment; the global beams provide enough ambient atmosphere.
@@ -2359,18 +2355,46 @@ body {
   .materials-grid { gap: 1.25rem; }
 }
 
-/* ── Phase 5: GLSL beams visibility ─────────────────────────────
+/* ── Phase 5: GLSL beams visibility + WebGL fallback gradients ────
    The global beams canvas (position: fixed, z-index: 0) renders
-   behind body content. Dark sections used to set background:#030303
-   which made them OPAQUE and blocked the beams. Override to
-   transparent so beams show through. Body still has #030303 as a
-   fallback for the dim space between rays. */
-#philosophy,
-#materials,
-#atelier,
-#testimonials,
+   behind body content. Dark sections must be transparent so beams
+   show through. PLUS each section now carries its own subtle radial
+   gradient as a WebGL fallback — when WebGL is blocked (Brave's
+   strict fingerprinting shield, hardware-accel disabled, ancient
+   GPUs), the section still has atmospheric depth instead of reading
+   as a wall of black.
+
+   Each section's gradient is distinct (different focal points,
+   different accent hues) so the fallback state still feels like
+   designed sections, not identical empty boxes. */
+#philosophy {
+  background:
+    radial-gradient(ellipse 70% 55% at 85% 40%, rgba(201, 169, 110, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 65% at 15% 70%, rgba(139, 92, 246, 0.04) 0%, transparent 65%),
+    transparent;
+}
+#materials {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 30%, rgba(201, 169, 110, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 50% at 80% 80%, rgba(244, 63, 94, 0.04) 0%, transparent 65%),
+    transparent;
+}
+#atelier {
+  background:
+    radial-gradient(ellipse 60% 60% at 30% 40%, rgba(201, 169, 110, 0.05) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 55% at 75% 65%, rgba(168, 196, 200, 0.04) 0%, transparent 60%),
+    transparent;
+}
+#testimonials {
+  background:
+    radial-gradient(ellipse 65% 70% at 50% 50%, rgba(201, 169, 110, 0.05) 0%, transparent 65%),
+    transparent;
+}
 #contact {
-  background: transparent;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 45%, rgba(201, 169, 110, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 45% at 25% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 60%),
+    transparent;
 }
 /* The body's own bg becomes the safe fallback when WebGL is
    disabled or before the canvas mounts */
