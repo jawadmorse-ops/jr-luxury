@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { isWebGLFunctional } from './webgl-detect.js'
 
 /**
  * Global GLSL beams — replaces the per-section 2D-canvas implementation
@@ -141,6 +142,9 @@ let _instance = null
 export function initBeamsBackground(prefersReducedMotion) {
   if (prefersReducedMotion) return null
   if (_instance) return _instance
+  // Brave strict shield etc. — skip the global beams entirely, let
+  // each section's CSS gradient fallback be the visual
+  if (!isWebGLFunctional()) return null
 
   // Hide all the old per-section 2D beam canvases — they stay in DOM
   // for backward compat (some scroll triggers may reference them)

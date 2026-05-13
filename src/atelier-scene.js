@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { buildComposer } from './postprocessing.js'
+import { isWebGLFunctional } from './webgl-detect.js'
 
 /**
  * Atelier section 3D backdrop — a scroll-driven particle constellation.
@@ -31,6 +32,9 @@ const PALETTE = [
 
 export function initAtelierScene(prefersReducedMotion) {
   if (prefersReducedMotion) return null
+  // Bail if WebGL is silently neutralized (Brave strict shield etc.).
+  // The #atelier CSS gradient handles atmosphere when this is gone.
+  if (!isWebGLFunctional()) return null
 
   const section = document.getElementById('atelier')
   if (!section) return null

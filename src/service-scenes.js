@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { buildComposer } from './postprocessing.js'
+import { isWebGLFunctional } from './webgl-detect.js'
 
 // ── Service shader — vertex displacement + fresnel rim + color drift ─
 //
@@ -321,6 +322,15 @@ function createPhilosophyScene(canvas) {
 // ── Public init ──────────────────────────────────────────────────────
 export function initServiceScenes(prefersReducedMotion) {
   if (prefersReducedMotion) return
+  // If WebGL is silently neutralized (Brave strict shield etc.), hide
+  // all the service + philosophy canvases and let the CSS fallback
+  // gradients on #materials / #philosophy carry the section
+  if (!isWebGLFunctional()) {
+    document.querySelectorAll('.service-canvas, .philosophy-canvas').forEach(c => {
+      c.style.display = 'none'
+    })
+    return
+  }
 
   const cleanups = []
 

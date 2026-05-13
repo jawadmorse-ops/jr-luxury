@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { buildComposer } from './postprocessing.js'
+import { isWebGLFunctional } from './webgl-detect.js'
 
 /**
  * The hero's WebGL background — a custom GLSL fragment shader that
@@ -167,13 +168,17 @@ export function initHeroWebGL(prefersReducedMotion) {
   const canvas = document.querySelector('.hero-webgl-canvas')
   if (!canvas) return null
 
+  // ACTIVE WebGL test — Brave's strict fingerprinting shield returns
+  // contexts that LOOK functional (no errors, no exceptions) but
+  // render blank/zero pixels silently. isWebGLFunctional does a real
+  // clear-and-readback against a known color. If WebGL is silently
+  // neutralized, hide the canvas so the CSS gradient on #hero shows.
+  if (!isWebGLFunctional()) {
+    canvas.style.display = 'none'
+    return null
+  }
+
   const isMobile = window.matchMedia('(max-width: 768px)').matches
-  // Try/catch around WebGL init — Brave's "Strict" fingerprinting shield,
-  // hardware-acceleration-disabled browsers, and ancient devices can
-  // all cause WebGLRenderer construction to throw or return a broken
-  // context. If init fails, hide the canvas so the CSS gradient
-  // fallback on #hero shows through cleanly instead of a black box
-  // sitting on top of it.
   let renderer
   try {
     renderer = new THREE.WebGLRenderer({
@@ -183,8 +188,6 @@ export function initHeroWebGL(prefersReducedMotion) {
       powerPreference: 'high-performance',
       failIfMajorPerformanceCaveat: false,
     })
-    // Some Brave configs return a context that exists but reports an
-    // immediately-lost state — check and bail if so
     if (renderer.getContext()?.isContextLost?.()) {
       throw new Error('WebGL context is lost on init')
     }
