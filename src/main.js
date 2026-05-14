@@ -14,6 +14,14 @@ import { initI18n, t }   from './i18n.js'
 
 gsap.registerPlugin(ScrollTrigger)
 
+// Mobile-bug fix: iOS Safari + Chrome Android collapse/expand the URL bar
+// while scrolling, which fires resize events. By default ScrollTrigger
+// reacts to those by refreshing all triggers, which with scrub animations
+// can snap-scroll the user back toward the top. ignoreMobileResize tells
+// ScrollTrigger to skip refresh when only the viewport HEIGHT changed on
+// touch devices — the typical URL bar behavior.
+ScrollTrigger.config({ ignoreMobileResize: true })
+
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const isTouch = window.matchMedia('(hover: none)').matches
 
@@ -100,12 +108,27 @@ window.addEventListener('DOMContentLoaded', () => {
   initFooter()
 })
 
-// ─── Refresh ScrollTrigger on monitor/DPI switch ───────
+// ─── Refresh ScrollTrigger on width changes only ────────
+//
+// Previously this refreshed on EVERY resize event, which fires on iOS
+// Safari + Chrome Android every time the URL bar collapses/expands as
+// the user scrolls. Each refresh recalculates scrub positions, which
+// could (with Lenis active) snap-scroll the user back near the hero.
+// Multiple users reported this as "scrolling down sometimes shoots
+// me back to the top."
+//
+// Fix: track lastWidth and only refresh when the WIDTH genuinely
+// changed (real device-orientation flip, monitor switch, dev-tools
+// open, etc.). URL bar collapse only changes height, so we ignore it.
 function initResizeRefresh() {
   let timer
+  let lastWidth = window.innerWidth
   window.addEventListener('resize', () => {
+    const w = window.innerWidth
+    if (w === lastWidth) return  // URL bar collapse / height-only — skip
+    lastWidth = w
     clearTimeout(timer)
-    timer = setTimeout(() => ScrollTrigger.refresh(true), 200)
+    timer = setTimeout(() => ScrollTrigger.refresh(), 200)
   }, { passive: true })
 }
 
