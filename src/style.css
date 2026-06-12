@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Montserrat:wght@300;400;500;600&family=Syne:wght@700;800&display=swap');
+/* Fonts load via <link> in index.html (preconnect + parallel fetch).
+   The @import that used to sit here was a duplicate request that also
+   blocked CSS parsing — removed. */
 
 /* ─── Custom Properties ──────────────────────────────── */
 :root {
@@ -26,6 +28,19 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
+
+/* When Lenis drives the scroll it adds .lenis to <html>. CSS smooth
+   scrolling must yield to it — both animating the same scroll position
+   produces a rubber-band fight on anchor jumps. Native smooth remains
+   the fallback for reduce-motion users (Lenis is skipped there). */
+html.lenis { scroll-behavior: auto; }
+
+/* Belt-and-braces against horizontal wiggle on mobile: scrubbed
+   x-translations (process steps enter from x:-80) can momentarily
+   extend the scrollable area on some mobile browsers even with
+   body{overflow-x:hidden}. clip blocks it without creating a new
+   scroll container. */
+html { overflow-x: clip; }
 
 body {
   background: var(--c-bg);
@@ -56,6 +71,18 @@ a { color: inherit; text-decoration: none; }
 button { background: none; border: none; cursor: pointer; font-family: inherit; }
 input, select, textarea { font-family: inherit; }
 ul { list-style: none; }
+
+/* Keyboard focus — the custom cursor hides the native pointer, so a
+   visible focus ring is the only navigation feedback keyboard users
+   get. :focus-visible keeps it off mouse clicks. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 1px solid rgba(201,169,110,0.65);
+  outline-offset: 3px;
+}
 
 /* Hide native cursor on pointer devices — custom cursor takes over */
 @media (hover: hover) {
@@ -379,6 +406,7 @@ section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
   color: #ffffff;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  white-space: nowrap;       /* was wrapping to two lines on narrow phones */
   transition: color 0.25s;
 }
 .nav-logo:hover { color: var(--c-gold-light); }
@@ -468,11 +496,34 @@ section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
   position: absolute;
   top: 1.5rem;
   right: 2rem;
+  padding: 0.6rem;            /* ≥44px touch target */
   font-size: 1.2rem;
   color: var(--c-muted);
   transition: color 0.2s;
 }
 .mobile-close:hover { color: var(--c-ivory); }
+
+/* Mobile menu CTA — desktop hides .nav-cta below 768px, which left
+   phones (90% of traffic) with no persistent path to the enquiry form.
+   The menu is where thumbs go; the CTA lives there now. */
+.mobile-menu-cta {
+  margin-top: 3rem;
+  padding: 0.95rem 2.6rem;
+  border: 1px solid rgba(201,169,110,0.45);
+  color: var(--c-gold);
+  font-family: var(--f-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+}
+.mobile-menu-cta:active,
+.mobile-menu-cta:hover {
+  background: var(--c-gold);
+  color: var(--c-bg);
+  border-color: var(--c-gold);
+}
 
 /* ─── Hero ───────────────────────────────────────────── */
 #hero {
@@ -777,6 +828,15 @@ section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
 @keyframes badge-pulse {
   0%, 100% { opacity: 1;    transform: scale(1); }
   50%       { opacity: 0.50; transform: scale(0.72); }
+}
+
+/* React hero headline (HeroGeometric.jsx). Desktop curve identical to
+   the old inline clamp; under 430px the fixed 3.5rem floor forced
+   "Elevate Your" to wrap with a widow, so phones get a measured vw size
+   that keeps each title on one line down to 320px. */
+.hero-h1 { font-size: clamp(3.5rem, 9.5vw, 7rem); }
+@media (max-width: 430px) {
+  .hero-h1 { font-size: 8.6vw; }
 }
 
 /* Headline — Syne bold, tight tracking (Awwwards editorial) */
@@ -1493,7 +1553,8 @@ section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
   width: 1px;
   height: 2rem;
   background: rgba(255,255,255,0.08);
-  margin-left: 36px;
+  /* logical: keeps the pipe under the step numbers in RTL too */
+  margin-inline-start: 36px;
 }
 
 /* ─── Testimonial ────────────────────────────────────── */
@@ -1630,6 +1691,19 @@ select option {
 input:focus, select:focus, textarea:focus { border-color: rgba(201,169,110,0.55); background: rgba(255,255,255,0.05); }
 input::placeholder, textarea::placeholder { color: var(--c-subtle); }
 textarea { resize: vertical; min-height: 90px; }
+
+/* Validation nudge — rose border + one short horizontal shake.
+   Rose (not red) stays inside the site's accent family. */
+input.field-error {
+  border-color: rgba(244,63,94,0.65);
+  animation: field-shake 0.36s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@keyframes field-shake {
+  10%, 90%      { transform: translateX(-1px); }
+  20%, 80%      { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-3px); }
+  40%, 60%      { transform: translateX(3px); }
+}
 
 .form-note {
   margin-top: 0.8rem;
@@ -2316,13 +2390,10 @@ body {
    This block addresses each defensively. Desktop unaffected. */
 @media (max-width: 768px), (pointer: coarse) {
 
-  /* Beams: drop to subtle atmospheric tint on mobile (was visible at
-     full intensity = garish; was display:none = static and dead).
-     0.35 opacity reads as ambient color depth without dominating the
-     6" reading surface — supports the WebGL hero + service scenes
-     instead of competing with them. */
+  /* Beams: softened tint on mobile. Target opacity (0.35) is written
+     by beams-background.js — an !important here used to beat the JS
+     inline style and kept the beams faintly visible over the hero. */
   #global-beams-canvas {
-    opacity: 0.35 !important;
     filter: saturate(0.7) blur(2px);
   }
 
@@ -2400,4 +2471,19 @@ body {
    disabled or before the canvas mounts */
 body {
   background: #030303;
+}
+
+/* ── Reduced motion: silence the CSS-driven loops too ─────────────
+   GSAP motion collapses via timeScale(50) in main.js; these infinite
+   CSS animations (marquee, shimmer, pulses) need their own off switch. */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .shimmer,
+  .prv-shimmer,
+  .hero-particles span,
+  .hero-badge-dot,
+  .scroll-line,
+  .ft-heart {
+    animation: none !important;
+  }
 }

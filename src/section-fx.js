@@ -67,6 +67,52 @@ function splitChars(node) {
   return charSpans
 }
 
+// ── Helper: recursively split text nodes into word spans ─────────
+//
+// Same tree walk as splitChars (preserves <em>/<br> structure) but the
+// atom is a word, not a character. Used for RTL headlines where char
+// splitting would break Arabic letter joining.
+function splitWordsDeep(node) {
+  const wordSpans = []
+
+  function walk(n) {
+    const children = Array.from(n.childNodes)
+    children.forEach(c => {
+      if (c.nodeType === Node.TEXT_NODE) {
+        const text = c.textContent
+        if (!text) return
+        const frag = document.createDocumentFragment()
+        text.split(/(\s+)/).forEach(piece => {
+          if (!piece) return
+          if (/^\s+$/.test(piece)) {
+            frag.appendChild(document.createTextNode(piece))
+            return
+          }
+          const wrap = document.createElement('span')
+          wrap.style.display = 'inline-block'
+          wrap.style.overflow = 'hidden'
+          wrap.style.verticalAlign = 'baseline'
+          wrap.style.lineHeight = 'inherit'
+          const inner = document.createElement('span')
+          inner.style.display = 'inline-block'
+          inner.style.willChange = 'transform'
+          inner.textContent = piece
+          wrap.appendChild(inner)
+          frag.appendChild(wrap)
+          wordSpans.push(inner)
+        })
+        n.replaceChild(frag, c)
+      } else if (c.nodeType === Node.ELEMENT_NODE) {
+        if (c.tagName === 'BR') return
+        walk(c)
+      }
+    })
+  }
+
+  walk(node)
+  return wordSpans
+}
+
 // ── Helper: split visible *words* (cheaper than chars for long bodies)
 function splitWords(node) {
   const wordSpans = []
@@ -118,6 +164,13 @@ export function initSectionEnterFX(prefersReducedMotion) {
   // ── Section headlines: char-stagger rise ─────────────────────
   // Targets: every major section's main h2. Each headline is the
   // section's "moment" — the text materializes into existence.
+  //
+  // RTL locales get a WORD stagger instead. Per-character inline-blocks
+  // destroy Arabic cursive shaping (every letter falls back to its
+  // isolated form — reads as broken type to a native speaker), and
+  // Hebrew gains nothing from char granularity. Words keep the rise
+  // gesture and the script intact.
+  const isRTL = document.documentElement.dir === 'rtl'
   const headingSelectors = [
     { sel: '#philosophy h2',                  start: 'top 80%' },
     { sel: '#materials .section-header h2',    start: 'top 80%' },
@@ -127,8 +180,12 @@ export function initSectionEnterFX(prefersReducedMotion) {
   headingSelectors.forEach(({ sel, start }) => {
     const h = document.querySelector(sel)
     if (!h) return
-    const chars = splitChars(h)
-    revealChars(chars, h, { start, stagger: 0.022, duration: 1.1 })
+    const parts = isRTL ? splitWordsDeep(h) : splitChars(h)
+    revealChars(parts, h, {
+      start,
+      stagger:  isRTL ? 0.07 : 0.022,
+      duration: 1.1,
+    })
   })
 
   // ── Testimonial quote body: word-stagger (chars would be too many)

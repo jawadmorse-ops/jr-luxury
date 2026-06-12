@@ -200,8 +200,13 @@ export function initAtelierScene(prefersReducedMotion) {
   }
 
   // ── Render loop ─────────────────────────────────────────
+  // active MUST start false: start() guards on !active, so initializing
+  // it to true made the initial start() a no-op. The scene then only ever
+  // rendered if IntersectionObserver happened to fire a stop→start cycle.
+  // Reloading the page mid-scroll (browser scroll restoration) with the
+  // section already in view left the constellation permanently frozen.
   let rafId = null
-  let active = true
+  let active = false
 
   function tick() {
     if (!active) return

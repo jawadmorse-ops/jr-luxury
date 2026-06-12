@@ -103,11 +103,14 @@ export function HeroGeometric({
             initial="hidden"
             animate="visible"
           >
+            {/* Size lives in CSS (.hero-h1) — phones need a media query
+                (measured: "Elevate Your" fits one line only ≤8.7vw there),
+                and inline styles can't express that. */}
             <h1
+              className="hero-h1"
               style={{
                 fontFamily: "'Syne', system-ui, sans-serif",
                 fontWeight: 800,
-                fontSize: "clamp(3.5rem, 10vw, 10rem)",
                 letterSpacing: "-0.03em",
                 lineHeight: 1.1,
                 marginBottom: "2rem",

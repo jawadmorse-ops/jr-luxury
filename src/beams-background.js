@@ -215,14 +215,15 @@ export function initBeamsBackground(prefersReducedMotion) {
   resize()
   window.addEventListener('resize', resize, { passive: true })
 
-  const clock = new THREE.Clock()
+  // plain timestamp instead of THREE.Clock (deprecated in r184)
+  const t0 = performance.now()
   let rafId = null
   const hero = document.getElementById('hero')
   let lastHidden = null
 
   function tick() {
     rafId = requestAnimationFrame(tick)
-    uniforms.uTime.value = clock.getElapsedTime()
+    uniforms.uTime.value = (performance.now() - t0) * 0.001
     uniforms.uScroll.value = window.scrollY
     // Scroll progress 0..1 — drives cool → warm → rose palette walk.
     // Clamped because some browsers report scrollY past max during
@@ -234,12 +235,15 @@ export function initBeamsBackground(prefersReducedMotion) {
     // Visibility check inline with render — runs every frame, works
     // regardless of scroll event source (native, Lenis, programmatic).
     // Reveal beams once user has scrolled past 60% of the hero.
+    // JS owns the target opacity for BOTH breakpoints — the old mobile
+    // CSS `opacity: .35 !important` beat these inline writes, so beams
+    // could never actually hide on phones.
     if (hero) {
       const trigger = hero.offsetTop + hero.offsetHeight * 0.6
       const hidden = window.scrollY < trigger
       if (hidden !== lastHidden) {
         lastHidden = hidden
-        canvas.style.opacity = hidden ? '0' : '1'
+        canvas.style.opacity = hidden ? '0' : (isMobile ? '0.35' : '1')
       }
     }
   }

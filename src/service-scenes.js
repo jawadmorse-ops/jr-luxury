@@ -139,7 +139,10 @@ function createServiceScene(canvas) {
     canvas.style.display = 'none'
     return null
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  // Coarse-pointer devices get DPR 1.5 — on a ~350px-wide card the visual
+  // difference vs 2.0 is nil, but the GPU cost of bloom+MSAA drops ~44%
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, finePointer ? 2 : 1.5))
   renderer.setClearColor(0x000000, 0)
   renderer.toneMapping         = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.3
@@ -185,10 +188,12 @@ function createServiceScene(canvas) {
   })
   scene.add(new THREE.Mesh(geo, wireMat))
 
-  // ── Mouse tilt ──────────────────────────────────────────
+  // ── Mouse tilt — hover-capable devices only ─────────────
+  // On touch, emulated mousemove from a tap made the shape lurch once
+  // and stick at a random tilt; there's no hover to ease it back.
   let tRX = 0, tRY = 0, cRX = 0, cRY = 0
 
-  if (card) {
+  if (card && finePointer) {
     card.addEventListener('mousemove', e => {
       const r = card.getBoundingClientRect()
       tRX = ((e.clientY - r.top)  / r.height - 0.5) * 1.4
@@ -201,22 +206,33 @@ function createServiceScene(canvas) {
   const post = buildComposer(renderer, scene, camera, { pipeline: 'subtle', samples: 4 })
 
   // ── Resize ──────────────────────────────────────────────
+  // updateStyle=false is the load-bearing flag here. The default
+  // renderer.setSize() writes a fixed inline px width/height onto the
+  // canvas, which permanently overrides the CSS `width: 100%`. The canvas
+  // then stayed frozen at its first-paint size, so any later card resize
+  // (phone rotation, URL-bar chrome, breakpoint shift) left the shape
+  // rendering off-center and clipped out of the card frame on mobile.
+  // With CSS owning layout size, the ResizeObserver below fires on every
+  // genuine card resize and the drawing buffer follows.
   function resize() {
-    const w = canvas.offsetWidth
-    const h = canvas.offsetHeight || 200
+    const w = canvas.clientWidth
+    const h = canvas.clientHeight || 200
     if (!w) return
     camera.aspect = w / h
     camera.updateProjectionMatrix()
-    renderer.setSize(w, h)
+    renderer.setSize(w, h, false)
     post.setSize(w, h)
   }
   resize()
   const ro = new ResizeObserver(resize)
   ro.observe(canvas)
 
-  // ── Tick ────────────────────────────────────────────────
+  // ── Tick — paused while the card is off-screen ──────────
   let rafId = null
+  let active = false
+
   function tick(t) {
+    if (!active) return
     rafId = requestAnimationFrame(tick)
     const time = t * 0.001
 
@@ -230,10 +246,35 @@ function createServiceScene(canvas) {
     post.setGrainTime(time)
     post.composer.render()
   }
-  rafId = requestAnimationFrame(tick)
+
+  function start() {
+    if (active) return
+    active = true
+    rafId = requestAnimationFrame(tick)
+  }
+  function stop() {
+    active = false
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null }
+  }
+
+  // These three scenes used to render continuously for the whole visit —
+  // measurable battery/jank cost on phones for canvases that are only in
+  // view for one section. rootMargin pre-warms them just before entry so
+  // the user never sees a frozen first frame.
+  let io = null
+  if ('IntersectionObserver' in window) {
+    io = new IntersectionObserver(
+      ([entry]) => entry.isIntersecting ? start() : stop(),
+      { threshold: 0, rootMargin: '160px' }
+    )
+    io.observe(card ?? canvas)
+  } else {
+    start()
+  }
 
   return function destroy() {
-    cancelAnimationFrame(rafId)
+    stop()
+    io?.disconnect()
     ro.disconnect()
     post.dispose()
     renderer.dispose()
@@ -284,12 +325,16 @@ function createPhilosophyScene(canvas) {
   // staircase aliasing at retina resolutions.
   const post = buildComposer(renderer, scene, camera, { pipeline: 'background', samples: 4 })
 
+  // Same updateStyle=false fix as the service scenes — CSS keeps the
+  // canvas at inset:0/100%, so the rings track the section through any
+  // reflow (language switch, breakpoint change) instead of freezing at
+  // first-paint size.
   function resize() {
-    const w = canvas.offsetWidth  || canvas.parentElement?.offsetWidth  || 800
-    const h = canvas.offsetHeight || canvas.parentElement?.offsetHeight || 600
+    const w = canvas.clientWidth  || canvas.parentElement?.clientWidth  || 800
+    const h = canvas.clientHeight || canvas.parentElement?.clientHeight || 600
     camera.aspect = w / h
     camera.updateProjectionMatrix()
-    renderer.setSize(w, h)
+    renderer.setSize(w, h, false)
     post.setSize(w, h)
   }
   resize()
@@ -297,7 +342,10 @@ function createPhilosophyScene(canvas) {
   ro.observe(canvas.parentElement || canvas)
 
   let rafId = null
+  let active = false
+
   function tick(t) {
+    if (!active) return
     rafId = requestAnimationFrame(tick)
     const time = t * 0.001
     ring1.rotation.z = time * 0.06
@@ -306,10 +354,31 @@ function createPhilosophyScene(canvas) {
     ring2.rotation.x = Math.PI / 3 + time * 0.03
     post.composer.render()
   }
-  rafId = requestAnimationFrame(tick)
+
+  function start() {
+    if (active) return
+    active = true
+    rafId = requestAnimationFrame(tick)
+  }
+  function stop() {
+    active = false
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null }
+  }
+
+  let io = null
+  if ('IntersectionObserver' in window) {
+    io = new IntersectionObserver(
+      ([entry]) => entry.isIntersecting ? start() : stop(),
+      { threshold: 0, rootMargin: '160px' }
+    )
+    io.observe(canvas.parentElement || canvas)
+  } else {
+    start()
+  }
 
   return function destroy() {
-    cancelAnimationFrame(rafId)
+    stop()
+    io?.disconnect()
     ro.disconnect()
     post.dispose()
     renderer.dispose()

@@ -3,9 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>JR Studios — Premium Web Design & Development</title>
     <meta name="description" content="JR Studios builds premium custom websites, 3D WebGL experiences, and digital brands for clients who demand excellence." />
+    <meta name="theme-color" content="#030303" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="JR Studios" />
+    <meta property="og:title" content="JR Studios — Premium Web Design & Development" />
+    <meta property="og:description" content="Custom websites, 3D WebGL experiences, and brand identities that turn visitors into clients." />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="JR Studios — Premium Web Design & Development" />
+    <meta name="twitter:description" content="Custom websites, 3D WebGL experiences, and brand identities that turn visitors into clients." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Montserrat:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
@@ -59,12 +67,16 @@
         <li><a href="#atelier" data-i18n="nav.process">Process</a></li>
         <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
       </ul>
+      <a href="#contact" class="mobile-menu-cta" data-i18n="nav.cta">Start a Project</a>
     </div>
 
     <!-- Hero -->
     <section id="hero">
       <!-- WebGL background — fragment-shader nebula in brand palette -->
       <canvas class="hero-webgl-canvas" aria-hidden="true"></canvas>
+
+      <!-- Ambient gold dust — populated by initHeroParticles() -->
+      <div class="hero-particles" aria-hidden="true"></div>
 
       <!-- React root — HeroGeometric mounts here (text + CTAs only) -->
       <div id="hero-react-root"></div>

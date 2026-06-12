@@ -139,9 +139,7 @@ function initPreloader() {
 
   // Set hero element initial states now — preloader covers them so no flash
   gsap.set('.hero-corner',     { width: 0, height: 0 })
-  gsap.set('.hl-inner',        { yPercent: 110 })
   gsap.set('.hero-side-label', { opacity: 0, y: -24 })
-  gsap.set('.hero-ticker',     { opacity: 0, y: 14 })
 
   if (prefersReducedMotion) {
     el.style.display = 'none'
@@ -152,21 +150,47 @@ function initPreloader() {
 
   document.body.style.overflow = 'hidden'
 
+  // Repeat visit within the same session: the brand moment already
+  // played. Holding people at a splash screen twice reads as slow,
+  // not premium — give them a half-second exit instead.
+  let seen = false
+  try { seen = sessionStorage.getItem('jr-seen') === '1' } catch (_) {}
+
+  if (seen) {
+    gsap.set(['.pl-tag', '.pl-bar'], { opacity: 0 })
+    gsap.timeline({
+      onComplete() { document.body.style.overflow = ''; heroEntrance() },
+    })
+      .fromTo('.pl-mono',
+        { opacity: 0, letterSpacing: '0.7em' },
+        { opacity: 1, letterSpacing: '0.55em', duration: 0.4, ease: 'power2.out' }
+      )
+      .to('#preloader', {
+        yPercent: -105,
+        duration: 0.55,
+        ease: 'power3.in',
+        delay: 0.1,
+        onComplete() { el.style.display = 'none' },
+      })
+    return
+  }
+  try { sessionStorage.setItem('jr-seen', '1') } catch (_) {}
+
   gsap.timeline({
     onComplete() { document.body.style.overflow = ''; heroEntrance() },
   })
     .fromTo('.pl-mono',
       { opacity: 0, letterSpacing: '0.9em', filter: 'blur(18px)' },
-      { opacity: 1, letterSpacing: '0.55em', filter: 'blur(0px)', duration: 2, ease: 'expo.out' }
+      { opacity: 1, letterSpacing: '0.55em', filter: 'blur(0px)', duration: 1.25, ease: 'expo.out' }
     )
-    .fromTo('.pl-tag',  { opacity: 0, y: 5 }, { opacity: 1, y: 0, duration: 0.75, ease: 'power2.out' }, '-=0.8')
-    .fromTo('.pl-bar',  { opacity: 0 },        { opacity: 1, duration: 0.4 }, '-=0.5')
-    .fromTo('.pl-fill', { scaleX: 0 },         { scaleX: 1, duration: 1.4, transformOrigin: 'left center', ease: 'power2.inOut' }, '<')
+    .fromTo('.pl-tag',  { opacity: 0, y: 5 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.85')
+    .fromTo('.pl-bar',  { opacity: 0 },        { opacity: 1, duration: 0.3 }, '-=0.45')
+    .fromTo('.pl-fill', { scaleX: 0 },         { scaleX: 1, duration: 1.0, transformOrigin: 'left center', ease: 'power2.inOut' }, '<')
     .to('#preloader', {
       yPercent: -105,
-      duration: 0.9,
+      duration: 0.8,
       ease: 'power3.in',
-      delay: 0.3,
+      delay: 0.15,
       onComplete() { el.style.display = 'none' },
     })
 }
@@ -175,32 +199,13 @@ function initPreloader() {
 function heroEntrance() {
   if (prefersReducedMotion) {
     gsap.set('.hero-corner', { width: 42, height: 42 })
-    gsap.set('.hl-inner', { yPercent: 0 })
-    gsap.set(['.hero-side-label', '.hero-ticker'], { opacity: 1, y: 0 })
+    gsap.set('.hero-side-label', { opacity: 1, y: 0 })
     return
   }
 
-  const tl = gsap.timeline()
-
-  tl.to('.hero-corner',     { width: 42, height: 42, duration: 0.85, stagger: 0.08, ease: 'expo.out' })
+  gsap.timeline()
+    .to('.hero-corner',     { width: 42, height: 42, duration: 0.85, stagger: 0.08, ease: 'expo.out' })
     .to('.hero-side-label', { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: 'expo.out' }, '-=0.5')
-    .to('.hero-ticker',     { opacity: 1, y: 0, duration: 1, ease: 'expo.out' }, '<')
-}
-
-
-// ─── Hero scroll zoom — camera dives into the scene ───
-function initHeroScrollZoom(heroCtrl) {
-  if (!heroCtrl?.camera || prefersReducedMotion) return
-  gsap.to(heroCtrl.camera.position, {
-    z: 1.4,
-    ease: 'none',
-    scrollTrigger: {
-      trigger: '#hero',
-      start:   'top top',
-      end:     'bottom top',
-      scrub:   2.5,
-    },
-  })
 }
 
 // ─── Kinetic typography — ScrollTrigger scrub ─────────
@@ -215,17 +220,6 @@ function initKineticType() {
   gsap.to('.hero-side-label', {
     y: -55, opacity: 0, ease: 'none',
     scrollTrigger: { trigger: '#hero', start: '18% top', end: '68% top', scrub: 1 },
-  })
-  // Ticker fades out without y movement (it's pinned to bottom: 0)
-  gsap.to('.hero-ticker', {
-    opacity: 0, ease: 'none',
-    scrollTrigger: { trigger: '#hero', start: '22% top', end: '55% top', scrub: 1 },
-  })
-
-  // Watermark parallax — drifts upward at 0.28× scroll speed
-  gsap.to('.hero-watermark', {
-    y: '22%', ease: 'none',
-    scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true },
   })
 
   // Corners fade on scroll
@@ -261,19 +255,8 @@ function initKineticType() {
     },
   })
 
-  // (Section h2 kinetic reveal moved out of here — now handled by
-  // initSectionEnterFX in section-fx.js with a character-by-character
-  // rise-from-baseline stagger. AT signature for editorial typography.
-  // We keep the iteration loop scaffold below for the legacy targets
-  // we still touch with simpler treatments — see below.)
-  gsap.utils.toArray([
-    '.testimonial-inner blockquote p',
-  ]).forEach(el => {
-    // The testimonial quote body is handled in section-fx with a
-    // word-stagger; we no-op here intentionally to preserve the
-    // iteration shape in case future targets are added.
-    return el
-  })
+  // (Section h2 kinetic reveal lives in initSectionEnterFX —
+  // character-by-character rise-from-baseline in section-fx.js.)
 
   // Section eyebrows slide in from left
   gsap.utils.toArray('.section-eyebrow').forEach(el => {
@@ -421,200 +404,9 @@ function initProductReveal() {
   // existing yPercent reveal upstream is plenty cinematic.)
 }
 
-// ─── Private Collection — stagger rotate-in + parallax ─
-//
-// Cards rotate subtly into view as a staggered stack.
-// ScrollTrigger scrub then drives a per-column parallax as you pass
-// the section — the asymmetry creates depth without `initSilkScroll()`.
-function initPrivateCollection() {
-  const cards = gsap.utils.toArray('.private-grid .prv-card')
-  if (!cards.length) return
-
-  // Stagger rotate-in entrance
-  gsap.fromTo(cards,
-    { rotate: 5, scale: 0.92, opacity: 0 },
-    {
-      rotate: 0, scale: 1, opacity: 1,
-      duration: 1.5, stagger: 0.16, ease: 'expo.out',
-      scrollTrigger: { trigger: '.private-grid', start: 'top 78%' },
-    }
-  )
-
-  if (prefersReducedMotion) return
-
-  // Scrubbed parallax — different column travel rates for layered depth
-  const factors = [-26, 10, 22, -13]
-  cards.forEach((card, i) => {
-    gsap.to(card, {
-      y: factors[i], ease: 'none',
-      scrollTrigger: {
-        trigger: '#private-collection',
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: 1.8,
-      },
-    })
-  })
-}
-
-// ─── Silk horizontal scroll gallery ───────────────────
-//
-// Spring-physics lerp stays — it's genuinely better than ScrollTrigger
-// for the silk weight feel. Card reveals are now driven by GSAP instead
-// of the old class-based CSS transition.
-function initSilkCollectionScroll() {
-  const tunnel   = document.getElementById('coll-tunnel')
-  const track    = document.getElementById('coll-track')
-  const dots     = [...document.querySelectorAll('.cd-dot')]
-  const hint     = document.querySelector('.coll-hint')
-  const viewport = track?.parentElement
-
-  if (!tunnel || !track || !viewport) return
-
-  const onMobile = window.matchMedia('(max-width: 768px)')
-
-  if (onMobile.matches) {
-    gsap.set([...track.children], { opacity: 1, x: 0 })
-    if (dots[0]) dots[0].classList.add('active')
-
-    let mobileHintGone = false
-    viewport.addEventListener('scroll', () => {
-      const cardW  = (track.children[0]?.offsetWidth ?? 280) + 3
-      const active = Math.min(dots.length - 1, Math.round(viewport.scrollLeft / cardW))
-      dots.forEach((d, i) => d.classList.toggle('active', i === active))
-      if (!mobileHintGone && viewport.scrollLeft > 24 && hint) {
-        hint.classList.add('hidden')
-        mobileHintGone = true
-      }
-    }, { passive: true })
-
-    // Tunnel header is inside sticky — reveal immediately via GSAP (no ScrollTrigger)
-    gsap.to([...tunnel.querySelectorAll('.coll-header .reveal')], {
-      opacity: 1, y: 0, duration: 0.9, stagger: 0.1, ease: 'expo.out',
-    })
-    return
-  }
-
-  // ── Desktop: sticky tunnel + spring-physics lerp ─────────────────
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    function getTravel() { return Math.max(0, track.scrollWidth - viewport.offsetWidth) }
-
-    function setTunnelHeight() {
-      tunnel.style.height = `${window.innerHeight + getTravel()}px`
-      ScrollTrigger.refresh()
-    }
-
-    setTunnelHeight()
-    if ('ResizeObserver' in window) new ResizeObserver(setTunnelHeight).observe(track)
-    window.addEventListener('resize', setTunnelHeight, { passive: true })
-
-    let current  = 0
-    let target   = 0
-    let velocity = 0
-    let hintGone = false
-
-    window.addEventListener('scroll', () => {
-      const tunnelTop = tunnel.getBoundingClientRect().top + window.scrollY
-      const travel    = getTravel()
-      const raw       = window.scrollY - tunnelTop
-      target = Math.max(0, Math.min(travel, raw))
-    }, { passive: true })
-
-    // Card reveal — GSAP instead of silk-in class
-    function revealVisibleCards() {
-      const edge = viewport.offsetWidth + 80
-      ;[...track.children].forEach(card => {
-        if (!card.dataset.gsapIn && card.offsetLeft - current < edge) {
-          card.dataset.gsapIn = '1'
-          gsap.to(card, {
-            opacity: 1, x: 0, rotateY: 0,
-            duration: 1, ease: 'expo.out',
-          })
-        }
-      })
-    }
-
-    function refreshDots() {
-      if (!dots.length) return
-      const travel = getTravel()
-      const pct    = travel > 0 ? current / travel : 0
-      const active = Math.min(dots.length - 1, Math.round(pct * (dots.length - 1)))
-      dots.forEach((d, i) => d.classList.toggle('active', i === active))
-    }
-
-    let headerRevealed = false
-    function maybeRevealHeader() {
-      if (headerRevealed) return
-      if (tunnel.getBoundingClientRect().top < window.innerHeight * 0.9) {
-        gsap.to([...tunnel.querySelectorAll('.coll-header .reveal')], {
-          opacity: 1, y: 0, duration: 0.9, stagger: 0.1, ease: 'expo.out',
-        })
-        headerRevealed = true
-      }
-    }
-    window.addEventListener('scroll', maybeRevealHeader, { passive: true })
-    maybeRevealHeader()
-
-    const SPRING  = 0.052
-    const DAMPING = 0.84
-
-    // Set 3D initial state on all cards (first card revealed immediately below)
-    gsap.set([...track.children], { opacity: 0, x: 28, rotateY: 14, transformPerspective: 900 })
-
-    ;(function tick() {
-      const travel = getTravel()
-      velocity  = velocity * DAMPING + (target - current) * SPRING
-      current  += velocity
-      current   = Math.max(0, Math.min(travel, current))
-
-      if (Math.abs(velocity) > 0.04 || Math.abs(target - current) > 0.04) {
-        track.style.transform = `translateX(-${current.toFixed(3)}px)`
-      }
-
-      revealVisibleCards()
-      refreshDots()
-
-      if (!hintGone && current > 36 && hint) {
-        hint.classList.add('hidden')
-        hintGone = true
-      }
-
-      requestAnimationFrame(tick)
-    })()
-
-    // First card always in immediately
-    if (track.children[0]) {
-      track.children[0].dataset.gsapIn = '1'
-      gsap.to(track.children[0], { opacity: 1, x: 0, rotateY: 0, duration: 1, ease: 'expo.out' })
-    }
-
-  }))
-}
-
-// ─── Hero video ────────────────────────────────────────
-function initVideo() {
-  const video = document.getElementById('hero-video')
-  if (!video) return
-  const activate = () => {
-    video.classList.add('loaded')
-    document.getElementById('hero')?.classList.add('has-video')
-  }
-  if (video.readyState >= 3) { activate(); return }
-  video.addEventListener('canplay', activate, { once: true })
-}
-
-// ─── Product images — fade in on load ─────────────────
-function initProductImages() {
-  document.querySelectorAll('.product-img').forEach(img => {
-    const activate = () => img.classList.add('loaded')
-    if (img.complete && img.naturalWidth > 0) {
-      activate()
-    } else {
-      img.addEventListener('load',  activate, { once: true })
-      img.addEventListener('error', () => {}, { once: true })
-    }
-  })
-}
+// (Init functions for retired sections — private collection, silk
+// gallery, hero video, product images, card tilt, magnetic cards —
+// were removed along with their markup. See git history.)
 
 // ─── Custom cursor — morphs based on what's hovered ─────
 //
@@ -704,7 +496,8 @@ function initScrollProgress() {
   if (!bar) return
   window.addEventListener('scroll', () => {
     const max = document.documentElement.scrollHeight - window.innerHeight
-    bar.style.width = (window.scrollY / max * 100).toFixed(2) + '%'
+    if (max <= 0) { bar.style.width = '0%'; return }
+    bar.style.width = (Math.min(1, window.scrollY / max) * 100).toFixed(2) + '%'
   }, { passive: true })
 }
 
@@ -729,68 +522,6 @@ function initHeroParticles() {
     p.style.setProperty('--p-dx', `${(Math.random() * 40 - 20).toFixed(1)}px`)
     container.appendChild(p)
   }
-}
-
-// ─── 3D tilt on collection cards ──────────────────────
-function initCardTilt() {
-  if (prefersReducedMotion || isTouch) return
-
-  document.querySelectorAll('.product-card').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const r  = card.getBoundingClientRect()
-      const cx = (e.clientX - r.left)  / r.width  - 0.5
-      const cy = (e.clientY - r.top)   / r.height - 0.5
-      card.style.transform =
-        `perspective(900px) rotateX(${(-cy * 5.5).toFixed(2)}deg) rotateY(${(cx * 5.5).toFixed(2)}deg) translateZ(16px)`
-    })
-    card.addEventListener('mouseleave', () => { card.style.transform = '' })
-  })
-}
-
-// ─── Magnetic image hover — lerp RAF ──────────────────
-//
-// Each private card runs its own spring lerp loop on the image wrapper.
-// CSS transition is stripped from .prv-img-wrap so only the lerp provides
-// smoothness — no double-easing artifact.
-function initMagneticCards() {
-  if (prefersReducedMotion || isTouch) return
-
-  document.querySelectorAll('.prv-card[data-magnetic]').forEach(card => {
-    const wrap = card.querySelector('.prv-img-wrap')
-    if (!wrap) return
-
-    let tx = 0, ty = 0
-    let cx = 0, cy = 0
-    let active = false
-    let rafId  = null
-
-    function tick() {
-      cx += (tx - cx) * 0.092
-      cy += (ty - cy) * 0.092
-
-      if (!active && Math.abs(cx) < 0.05 && Math.abs(cy) < 0.05) {
-        wrap.style.transform = ''
-        rafId = null
-        return
-      }
-
-      wrap.style.transform = `translate(${cx.toFixed(2)}px, ${cy.toFixed(2)}px)`
-      rafId = requestAnimationFrame(tick)
-    }
-
-    card.addEventListener('mousemove', e => {
-      const r  = card.getBoundingClientRect()
-      tx = ((e.clientX - (r.left + r.width  * 0.5)) / (r.width  * 0.5)) * 18
-      ty = ((e.clientY - (r.top  + r.height * 0.5)) / (r.height * 0.5)) * 12
-      active = true
-      if (!rafId) rafId = requestAnimationFrame(tick)
-    })
-
-    card.addEventListener('mouseleave', () => {
-      active = false; tx = 0; ty = 0
-      if (!rafId) rafId = requestAnimationFrame(tick)
-    })
-  })
 }
 
 // ─── Magnetic nav links ────────────────────────────────
@@ -841,6 +572,9 @@ function initMobileMenu() {
     mobileMenu.classList.contains('open') ? closeMenu() : openMenu()
   )
   close.addEventListener('click', closeMenu)
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && mobileMenu.classList.contains('open')) closeMenu()
+  })
 
   // Expose closeMenu for smooth-scroll handler
   window._closeMenu = closeMenu
@@ -897,16 +631,35 @@ function initForm() {
   const submit = document.getElementById('form-submit')
   if (!form || !submit) return
 
+  const nameInput = form.querySelector('[name="name"]')
+
+  // Clear the error state the moment the user starts fixing it
+  nameInput.addEventListener('input', () => {
+    nameInput.classList.remove('field-error')
+  })
+
   form.addEventListener('submit', e => {
     e.preventDefault()
 
-    const name    = form.querySelector('[name="name"]').value.trim()
+    const name    = nameInput.value.trim()
     const phone   = form.querySelector('[name="phone"]').value.trim()
     const type    = form.querySelector('[name="interest"]').value
     const message = form.querySelector('[name="message"]').value.trim()
 
+    // Name is the one field we genuinely need — WhatsApp already
+    // carries the sender's number. An empty submit used to open a
+    // blank-ish chat; now it nudges instead.
+    if (!name) {
+      nameInput.classList.remove('field-error')
+      // Force restart of the shake animation
+      void nameInput.offsetWidth
+      nameInput.classList.add('field-error')
+      nameInput.focus()
+      return
+    }
+
     let text = `${t('wa.intro')}\n\n`
-    if (name)    text += `*${t('wa.name')}:* ${name}\n`
+    text += `*${t('wa.name')}:* ${name}\n`
     if (phone)   text += `*${t('wa.phone')}:* ${phone}\n`
     if (type)    text += `*${t('wa.type')}:* ${type}\n`
     if (message) text += `*${t('wa.details')}:* ${message}`

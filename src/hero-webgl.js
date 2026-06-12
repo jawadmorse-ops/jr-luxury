@@ -130,14 +130,21 @@ const FRAGMENT = /* glsl */ `
     float indigoFil = smoothstep(0.74, 0.92, dot(r, r) * 0.55);
     col += uColorIndigo * indigoFil * 0.45 * smoothstep(-0.2, 0.5, uv.y);
 
-    // Rose blooms — pulled from the q-magnitude and biased lower
+    // Rose blooms — pulled from the q-magnitude and biased lower.
+    // Portrait attenuation: on tall narrow viewports the aspect
+    // correction compresses x, which concentrated the rose band into a
+    // hot crimson slab across the whole bottom of the phone screen.
+    // Wide screens (aspect ≥ 1) are untouched.
+    float aspect = uResolution.x / max(uResolution.y, 1.0);
+    float portrait = smoothstep(1.0, 0.62, aspect);
+    float roseTame = 1.0 - portrait * 0.55;
     float roseMask = smoothstep(0.50, 0.78, length(q));
     roseMask *= smoothstep(0.6, -0.4, uv.y);
-    col = mix(col, uColorRose, roseMask * 0.30);
+    col = mix(col, uColorRose, roseMask * 0.30 * roseTame);
 
     // Rose filament highlights at the bottom edge — adds depth contrast
     float roseFil = smoothstep(0.72, 0.88, length(q));
-    col += uColorRose * roseFil * 0.40 * smoothstep(0.5, -0.4, uv.y);
+    col += uColorRose * roseFil * 0.40 * roseTame * smoothstep(0.5, -0.4, uv.y);
 
     // Cursor warm halo — molten gold pool that follows the mouse
     vec2 mp = (uMouse * 2.0 - 1.0);
@@ -279,7 +286,10 @@ export function initHeroWebGL(prefersReducedMotion) {
                  progress > 0.90 ? 0 :
                  1 - (progress - 0.55) / 0.35
     if (Math.abs(fade - lastFade) > 0.005) {
-      canvas.style.opacity = fade.toFixed(3)
+      // Mobile cap 0.78: the stylesheet used to request this via a media
+      // query, but this inline write silently overrode it — the shader ran
+      // at full desktop intensity on phones and fought the headline.
+      canvas.style.opacity = (isMobile ? fade * 0.78 : fade).toFixed(3)
       lastFade = fade
     }
   }
@@ -287,13 +297,14 @@ export function initHeroWebGL(prefersReducedMotion) {
   // ── Render loop ─────────────────────────────────────────
   let rafId = null
   let active = true
-  const clock = new THREE.Clock()
+  // plain timestamp instead of THREE.Clock (deprecated in r184)
+  const t0 = performance.now()
 
   function tick() {
     if (!active) return
     rafId = requestAnimationFrame(tick)
 
-    uniforms.uTime.value = clock.getElapsedTime()
+    uniforms.uTime.value = (performance.now() - t0) * 0.001
 
     // Lerp mouse for weighted feel
     uniforms.uMouse.value.x += (targetMouse.x - uniforms.uMouse.value.x) * 0.06
