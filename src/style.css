@@ -2170,24 +2170,25 @@ body {
   .hero-corner          { display: none; } /* too crowded on small screens */
   .hero-scroll-indicator { bottom: 1.5rem; }
 
-  /* Gap fix: the hero was a fixed 100svh but the content (top-aligned)
-     only filled ~80%, leaving a ~250px dead band below the CTAs before
-     the next section — the perceived "gap between the hero and the rest."
-     Now the hero sizes to its content with a sensible floor, and centers
-     it, so any residual slack is small and balanced top/bottom instead
-     of a one-sided void. The marquee follows the buttons naturally. */
+  /* Gap fix: the hero was a fixed 100svh but the content only filled
+     ~80%, leaving a big dead band below the CTAs before the next section
+     — the perceived "gap between the hero and the rest." The hero now
+     hugs its content (the 64svh floor only catches unusually short
+     content), so the marquee sits just below the buttons with a small,
+     deliberate margin instead of a dark void. */
   #hero {
     height: auto;
-    min-height: 74svh;
+    min-height: 64svh;
     display: flex;
     flex-direction: column;
     justify-content: center;
   }
-  /* The React hero island trims its own top/bottom padding so content
-     sits comfortably without re-introducing the void. */
+  /* The React hero island trims its own vertical padding. Bottom is kept
+     tight (1.75rem) so the dead space below the CTAs is minimal; the top
+     keeps enough to clear the fixed nav. */
   #hero-react-root > div > div {
-    padding-top: 5rem !important;
-    padding-bottom: 3rem !important;
+    padding-top: 4.5rem !important;
+    padding-bottom: 1.75rem !important;
   }
 
   /* Sections */
@@ -2347,8 +2348,30 @@ body {
   flex-direction: row-reverse;
 }
 
+/* Process steps in RTL.
+   .process-step is a GRID (72px number + 1fr content), so the old
+   `flex-direction: row-reverse` was a no-op. Worse, RTL auto-placed the
+   number track on the RIGHT, which pushed the Arabic/Hebrew text into the
+   left-center of the screen (right edge inset ~140px) with the number
+   stranded alone at the right margin — the text read as "outside the
+   frame," unreadable from the right where RTL reading starts.
+   Fix: lay the grid out LTR (number on the LEFT, content track on the
+   RIGHT, flush to the right margin) but render the text itself RTL so it
+   reads correctly and hugs the right reading edge. */
 [dir="rtl"] .process-step {
-  flex-direction: row-reverse;
+  direction: ltr;
+}
+[dir="rtl"] .step-content {
+  direction: rtl;
+  text-align: right;
+}
+/* connector sits under the number column, which is now on the left.
+   The connector lives in the RTL .process-steps container, so an
+   inline-start margin would resolve to the right — use an explicit
+   left margin to keep it under the (now left-aligned) number. */
+[dir="rtl"] .process-connector {
+  margin-inline-start: 0;
+  margin-left: 36px;
 }
 
 [dir="rtl"] input,
