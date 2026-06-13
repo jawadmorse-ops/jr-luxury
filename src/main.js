@@ -338,6 +338,15 @@ function initScrollReveal() {
 function initProductReveal() {
   if (prefersReducedMotion) return
 
+  // RTL note: the process steps used to slide in horizontally (x:-80).
+  // With right-aligned Arabic/Hebrew that shoved the text off the edge
+  // and clipped it ("text out of frame" in the process section), and a
+  // mid-scrub scroll position could leave it parked off-screen. So RTL
+  // drops the horizontal travel entirely and enters with a pure fade +
+  // short vertical rise, which can never overflow sideways. LTR keeps
+  // the signature slide-from-the-margin.
+  const isRTL = document.documentElement.dir === 'rtl'
+
   // Material cards
   gsap.from('.material-card', {
     rotateX: 12, y: 64, opacity: 0,
@@ -346,21 +355,21 @@ function initProductReveal() {
     scrollTrigger: { trigger: '.materials-grid', start: 'top 75%' },
   })
 
-  // Philosophy card — gentle Y-rotation "page turn" feel
+  // Philosophy card — gentle Y-rotation "page turn" feel (x only in LTR)
   gsap.from('.philosophy-card', {
-    rotateY: -10, x: -44, opacity: 0,
+    rotateY: -10, x: isRTL ? 0 : -44, y: isRTL ? 36 : 0, opacity: 0,
     duration: 1.3, ease: 'expo.out',
     scrollTrigger: { trigger: '.philosophy-card', start: 'top 80%' },
   })
 
-  // Process steps — scroll-scrubbed stagger from left. Each step
-  // travels in as its own row crosses the viewport, so the timing
-  // feels organic, not like a single canned animation
-  gsap.utils.toArray('.process-step').forEach((step, i) => {
+  // Process steps — each row reveals as it crosses the viewport, so the
+  // timing feels organic rather than a single canned animation.
+  gsap.utils.toArray('.process-step').forEach((step) => {
+    const from = isRTL ? { y: 40, opacity: 0 } : { x: -80, opacity: 0 }
     gsap.fromTo(step,
-      { x: -80, opacity: 0 },
+      from,
       {
-        x: 0, opacity: 1, ease: 'none',
+        x: 0, y: 0, opacity: 1, ease: 'none',
         scrollTrigger: {
           trigger: step,
           start: 'top 92%',

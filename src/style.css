@@ -62,7 +62,10 @@ body::before {
   z-index: 9989;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23g)' opacity='0.042'/%3E%3C/svg%3E");
-  opacity: 0.55;
+  /* Was 0.55 — that much grain read as a hazy film softening the whole
+     page (part of the "blurry" feeling). 0.34 still breaks up banding on
+     dark gradients without the haze. */
+  opacity: 0.34;
   mix-blend-mode: overlay;
 }
 
@@ -2166,6 +2169,26 @@ body {
   .hero-watermark       { opacity: 0.6; }
   .hero-corner          { display: none; } /* too crowded on small screens */
   .hero-scroll-indicator { bottom: 1.5rem; }
+
+  /* Gap fix: the hero was a fixed 100svh but the content (top-aligned)
+     only filled ~80%, leaving a ~250px dead band below the CTAs before
+     the next section — the perceived "gap between the hero and the rest."
+     Now the hero sizes to its content with a sensible floor, and centers
+     it, so any residual slack is small and balanced top/bottom instead
+     of a one-sided void. The marquee follows the buttons naturally. */
+  #hero {
+    height: auto;
+    min-height: 74svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  /* The React hero island trims its own top/bottom padding so content
+     sits comfortably without re-introducing the void. */
+  #hero-react-root > div > div {
+    padding-top: 5rem !important;
+    padding-bottom: 3rem !important;
+  }
 
   /* Sections */
   section               { padding: clamp(3.5rem, 7vw, 6rem) 0; }

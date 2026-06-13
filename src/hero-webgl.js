@@ -202,9 +202,14 @@ export function initHeroWebGL(prefersReducedMotion) {
     canvas.style.display = 'none'
     return null
   }
-  // Bumped from 1.5 to 2.0 on desktop — high-DPI screens were showing
-  // visible pixelation in the dark gradient regions
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2))
+  // DPR: desktop caps at 2, mobile at 1.75. The old mobile cap of 1.0
+  // rendered the full-screen nebula at a fraction of a high-density
+  // phone's native resolution, so it upscaled visibly soft — that was
+  // the "hero background looks blurry on my phone" report. 1.75 is sharp
+  // on a 3x screen while staying well under a 2x fragment budget; the
+  // shader already pauses via IntersectionObserver when the hero is
+  // scrolled away, so the cost is bounded to the first screen.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.75 : 2))
   renderer.setClearColor(0x030303, 1)
 
   const scene = new THREE.Scene()
